@@ -47,7 +47,7 @@ export function Cabinet() {
           <p style={{ color: 'var(--text-3)', fontSize: '0.9rem', marginBottom: 24 }}>
             Для регистрации сертификата нам нужен ваш UDID. Установите профиль, и мы автоматически получим его и авторизуем вас.
           </p>
-          <a href="http://localhost:3000/api/udid/generate" className="btn btn-primary" style={{ width: '100%', padding: '14px' }}>
+          <a href="/api/udid/generate" className="btn btn-primary" style={{ width: '100%', padding: '14px' }}>
             Получить UDID
           </a>
           <p style={{ color: 'var(--text-3)', fontSize: '0.75rem', marginTop: 16 }}>
