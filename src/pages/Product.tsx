@@ -1,57 +1,23 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { StarIcon, BoltIcon, ShieldIcon, ChevronRightIcon, MinusIcon, PlusIcon, HeartIcon, VerifyIcon } from '../ui/Icons'
 import { ProductCard } from '../components/ProductCard'
-import { supabase } from '../lib/supabase'
+import { PRODUCTS } from '../data/catalog'
 
 export function Product() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [product, setProduct] = useState<any>(null)
-  const [related, setRelated] = useState<any[]>([])
-  const [reviews, setReviews] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
+  const product = PRODUCTS.find(p => p.id === id) || PRODUCTS[0]
   const denominations = [
     { label: 'Базовый', mult: 1 }, { label: 'Стандарт', mult: 2.6 }, { label: 'Премиум', mult: 5.1 }, { label: 'Мега', mult: 9.4 }
   ]
   const [denom, setDenom] = useState(0)
   const [qty, setQty] = useState(1)
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      const { data: products } = await supabase.from('bazzar_products').select('*').eq('active', true)
-      if (products) {
-        const mapped = products.map(p => ({ ...p, oldPrice: p.old_price, rating: parseFloat(p.rating) }))
-        const p = mapped.find(p => p.id === id || p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') === id) || mapped[0]
-        setProduct(p)
-        
-        let rel = mapped.filter(x => x.category === p.category && x.id !== p.id).slice(0, 5)
-        if (rel.length < 5) rel = mapped.filter(x => x.id !== p.id).slice(0, 5)
-        setRelated(rel)
-        
-        if (p) {
-          const { data: revs } = await supabase.from('bazzar_reviews').select('*').eq('product_id', p.id).eq('status', 'published')
-          if (revs) setReviews(revs)
-        }
-      }
-      setLoading(false)
-    }
-    load()
-  }, [id])
-
-  if (loading) {
-    return <div style={{ padding: 100, textAlign: 'center', color: 'var(--text-3)' }}>Загрузка товара...</div>
-  }
-
-  if (!product) {
-    return <div style={{ padding: 100, textAlign: 'center', color: 'var(--text-3)' }}>Товар не найден</div>
-  }
-
   const unit = Math.round(product.price * denominations[denom].mult)
   const total = unit * qty
+  const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 5)
+  const fallback = related.length < 5 ? PRODUCTS.filter(p => p.id !== product.id).slice(0, 5) : related
 
   return (
     <div style={{ position: 'relative' }}>
@@ -97,16 +63,14 @@ export function Product() {
             <div className="card" style={{ padding: 24, marginTop: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <h3 style={{ fontSize: '1.2rem' }}>Отзывы</h3>
-                <span className="chip"><span style={{ color: '#fbbf24', display: 'inline-flex' }}><StarIcon size={13} /></span> {product.rating.toFixed(1)} · {reviews.length} оценок</span>
+                <span className="chip"><span style={{ color: '#fbbf24', display: 'inline-flex' }}><StarIcon size={13} /></span> {product.rating.toFixed(1)} · {Math.round(product.sold / 18)} оценок</span>
               </div>
-              
-              {reviews.length === 0 ? <p style={{color: 'var(--text-3)', fontSize: '0.9rem'}}>Отзывов пока нет</p> : 
-               reviews.map(r => (
-                <div key={r.id} style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: '1px solid var(--hair)' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--bg)', flexShrink: 0 }}>{r.author[0]}</div>
+              {[['Игорь', 'Пришло моментально, всё работает. Беру не первый раз 👍'], ['Sofia', 'Дешевле чем в других местах, поддержка помогла с активацией.']].map(([n, t]) => (
+                <div key={n} style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: '1px solid var(--hair)' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--bg)', flexShrink: 0 }}>{n[0]}</div>
                   <div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.author}</span><span style={{ display: 'flex', gap: 1, color: '#fbbf24' }}>{Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} size={11} color={i < r.rating ? '#fbbf24' : 'var(--text-3)'} />)}</span></div>
-                    <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginTop: 4 }}>{r.text}</p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{n}</span><span style={{ display: 'flex', gap: 1, color: '#fbbf24' }}>{Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} size={11} />)}</span></div>
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginTop: 4 }}>{t}</p>
                   </div>
                 </div>
               ))}
@@ -148,7 +112,7 @@ export function Product() {
               {/* Итого */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '16px 0', borderTop: '1px solid var(--hair)', borderBottom: '1px solid var(--hair)', marginBottom: 18 }}>
                 <span style={{ color: 'var(--text-2)' }}>Итого</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem' }}>{total > 0 ? total.toLocaleString('ru-RU') + ' ₽' : 'Бесплатно'}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem' }}>{total.toLocaleString('ru-RU')} ₽</span>
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
@@ -168,7 +132,7 @@ export function Product() {
         {/* Похожее */}
         <div style={{ marginTop: 56 }}>
           <h2 className="section-title" style={{ marginBottom: 22 }}>Похожие товары</h2>
-          <div className="grid-products">{related.map(p => <ProductCard key={p.id} product={p} />)}</div>
+          <div className="grid-products">{fallback.map(p => <ProductCard key={p.id} product={p} />)}</div>
         </div>
       </div>
       <style>{`@media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }`}</style>
