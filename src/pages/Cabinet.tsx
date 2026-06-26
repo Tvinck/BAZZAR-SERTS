@@ -60,6 +60,7 @@ export function Cabinet() {
           <a href="/api/udid/generate" className="btn btn-primary" style={{ width: '100%', padding: '14px' }}>
             Получить UDID
           </a>
+        </div>
       </div>
     )
   }
