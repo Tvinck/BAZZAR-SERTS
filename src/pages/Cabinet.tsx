@@ -44,16 +44,22 @@ export function Cabinet() {
             <UserIcon size={28} />
           </div>
           <h2 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Вход в личный кабинет</h2>
-          <p style={{ color: 'var(--text-3)', fontSize: '0.9rem', marginBottom: 24 }}>
-            Для регистрации сертификата нам нужен ваш UDID. Установите профиль, и мы автоматически получим его и авторизуем вас.
-          </p>
+          
+          <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--hair)', padding: '16px', borderRadius: '14px', marginBottom: 24 }}>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: 12, lineHeight: 1.5 }}>
+              <span style={{ color: 'var(--green)', fontWeight: 600 }}>Зачем это нужно?</span> UDID — это уникальный номер вашего iPhone. Он необходим для регистрации сертификата разработчика Apple, с помощью которого вы сможете устанавливать любые приложения в обход App Store.
+            </p>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: 12, lineHeight: 1.5 }}>
+              <span style={{ color: 'var(--green)', fontWeight: 600 }}>Это безопасно?</span> Да, абсолютно. Мы получаем исключительно базовую техническую информацию об устройстве (UDID и модель). Мы не имеем доступа к вашим личным данным или паролям.
+            </p>
+            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.5 }}>
+              <span style={{ color: 'var(--amber)', fontWeight: 600 }}>Внимание:</span> Если у вас включена «Защита украденного устройства» (Stolen Device Protection) от Apple, установка профиля может потребовать задержку в 1 час. Просто подождите этот час и повторите попытку установки профиля.
+            </p>
+          </div>
+
           <a href="/api/udid/generate" className="btn btn-primary" style={{ width: '100%', padding: '14px' }}>
             Получить UDID
           </a>
-          <p style={{ color: 'var(--text-3)', fontSize: '0.75rem', marginTop: 16 }}>
-            Безопасно. Мы берем только базовую информацию об устройстве.
-          </p>
-        </div>
       </div>
     )
   }
