@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ProductCard } from '../components/ProductCard'
 import { SearchIcon, SlidersIcon, CheckIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
-import { CATEGORIES, PRODUCTS } from '../data/catalog'
+import { CATEGORIES } from '../data/catalog'
+import { supabase } from '../lib/supabase'
 
 const SORTS = ['Популярные', 'Сначала дешёвые', 'Сначала дорогие', 'Высокий рейтинг']
 
@@ -9,9 +10,26 @@ export function Catalog() {
   const [active, setActive] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [sort, setSort] = useState(0)
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('bazzar_products').select('*').eq('active', true)
+      if (data) {
+        setProducts(data.map(p => ({
+          ...p,
+          oldPrice: p.old_price,
+          rating: parseFloat(p.rating)
+        })))
+      }
+      setLoading(false)
+    }
+    load()
+  }, [])
 
   const list = useMemo(() => {
-    let r = PRODUCTS.filter(p =>
+    let r = products.filter(p =>
       (!active || p.category === active) &&
       (!q || (p.title + p.subtitle).toLowerCase().includes(q.toLowerCase()))
     )
@@ -19,7 +37,7 @@ export function Catalog() {
     if (sort === 2) r = [...r].sort((a, b) => b.price - a.price)
     if (sort === 3) r = [...r].sort((a, b) => b.rating - a.rating)
     return r
-  }, [active, q, sort])
+  }, [active, q, sort, products])
 
   return (
     <div style={{ position: 'relative' }}>
@@ -62,7 +80,9 @@ export function Catalog() {
             </div>
 
             <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 14 }}>Найдено: {list.length}</div>
-            {list.length > 0 ? (
+            {loading ? (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>Загрузка товаров...</div>
+            ) : list.length > 0 ? (
               <div className="grid-products">{list.map(p => <ProductCard key={p.id} product={p} />)}</div>
             ) : (
               <div className="card" style={{ padding: 48, textAlign: 'center', color: 'var(--text-3)' }}>Ничего не найдено 🙃 Попробуйте другой запрос.</div>
