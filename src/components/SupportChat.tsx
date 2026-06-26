@@ -83,14 +83,10 @@ export const SupportChat = () => {
     }
     setMessages(prev => [...prev, tempMsg])
 
-    const { error } = await supabase
-      .from('support_messages')
-      .insert({
-        user_id: userId,
-        is_from_user: true,
-        message: msgText,
-        project: 'Bazzar Certs'
-      })
+    const { error } = await supabase.rpc('bazzar_support_message', {
+      p_user_id: userId,
+      p_message: msgText
+    })
 
     if (error) {
       console.error('Ошибка отправки:', error)
