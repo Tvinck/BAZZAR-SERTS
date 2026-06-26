@@ -59,12 +59,24 @@ export function PaymentModal({
 
       // 3. Записываем юзера, если был куплен сертификат
       if (hasCert) {
-        await supabase.from('bazzar_users').insert({
+        // Создаем заявку на сертификат, чтобы она появилась в "Регистрации сертификатов" и улетела в Пачку
+        await supabase.from('apple_certificates').insert({
+          udid: udid,
+          plan_id: total > 1000 ? 'vip' : 'base',
+          source: 'Bazzar Market',
+          sale_price: total,
+          api_cost: 0,
+          status: 'pending',
+          crm_status: 'pending'
+        });
+
+        // Также сохраняем или обновляем пользователя в базе Bazzar
+        await supabase.from('bazzar_users').upsert({
           udid: udid,
           status: 'bought',
           last_purchase: new Date().toISOString(),
           plan: 'Новый сертификат (Из корзины)'
-        });
+        }, { onConflict: 'udid' });
       }
 
       // 4. Обновляем аналитику
