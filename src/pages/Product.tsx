@@ -162,7 +162,19 @@ export function Product() {
               </div>
 
               <div style={{ display: 'flex', gap: 10 }}>
-                <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }} className="btn btn-primary" style={{ flex: 1, height: 52 }} onClick={() => navigate('/cart')}>Купить сейчас</motion.button>
+                <motion.button 
+                  whileHover={{ y: -1 }} 
+                  whileTap={{ scale: 0.97 }} 
+                  className="btn btn-primary" 
+                  style={{ flex: 1, height: 52 }} 
+                  onClick={() => {
+                    const cartItem = { id: product.id, title: product.title, subtitle: product.subtitle, price: unit, qty, image: product.image, emoji: product.emoji, category: product.category };
+                    localStorage.setItem('bazzar_cart', JSON.stringify([cartItem]));
+                    navigate('/cart');
+                  }}
+                >
+                  Купить сейчас
+                </motion.button>
                 <button onClick={() => setIsFavorite(!isFavorite)} className="btn btn-ghost" style={{ width: 52, height: 52, padding: 0, color: isFavorite ? 'var(--red)' : 'var(--text)' }} aria-label="В избранное">
                   <HeartIcon size={19} />
                 </button>

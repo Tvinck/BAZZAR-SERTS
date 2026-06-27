@@ -11,18 +11,26 @@ export function Cart() {
   const [items, setItems] = useState<any[]>([])
   
   useEffect(() => {
-    // Demo: prefill cart with 2 products
-    supabase.from('bazzar_products').select('*').limit(2).then(({ data }) => {
-      if (data) {
-        setItems(data.map(p => ({ ...p, qty: 1 })))
-      }
-    })
+    const saved = localStorage.getItem('bazzar_cart')
+    if (saved) {
+      try { setItems(JSON.parse(saved)) } catch(e){}
+    }
   }, [])
+  
+  const updateCart = (newItems: any[]) => {
+    setItems(newItems)
+    if (newItems.length > 0) {
+      localStorage.setItem('bazzar_cart', JSON.stringify(newItems))
+    } else {
+      localStorage.removeItem('bazzar_cart')
+    }
+  }
+
   const [promo, setPromo] = useState('')
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
-  const setQty = (id: string, d: number) => setItems(its => its.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + d) } : i))
-  const remove = (id: string) => setItems(its => its.filter(i => i.id !== id))
+  const setQty = (id: string, d: number) => updateCart(items.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + d) } : i))
+  const remove = (id: string) => updateCart(items.filter(i => i.id !== id))
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const total = subtotal
@@ -30,7 +38,7 @@ export function Cart() {
 
   const handlePaymentSuccess = async () => {
     setIsPaymentOpen(false)
-    setItems([]) // Clear cart
+    updateCart([]) // Clear cart
     
     // Analytics: track order
     trackEvent('orders')
