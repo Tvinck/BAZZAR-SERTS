@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ArrowRight, Sparkles as SparkIcon } from 'lucide-react'
 import { ProductCard } from '../components/ProductCard'
@@ -19,11 +20,7 @@ const trust = [
   { icon: <HeadsetIcon size={20} />, title: 'Поддержка', sub: 'Живые люди в чате' }
 ]
 
-const reviews = [
-  { name: 'Артём', text: 'Установил Scarlet без ПК, всё работает! Никаких слетов уже месяц.', game: 'iPhone 15 Pro' },
-  { name: 'Лиза', text: 'Купила VIP сертификат. TikTok мод встал за 2 минуты, теперь сижу без ограничений.', game: 'iPhone 13' },
-  { name: 'Макс', text: 'Отличный сервис. Оплатил, сразу получил файл и подробную инструкцию.', game: 'iPad Pro' }
-]
+
 
 const faqs = [
   { q: 'Для чего нужен сертификат?', a: 'Сертификат разработчика позволяет устанавливать любые приложения (IPA) в обход App Store прямо на вашем устройстве, без использования компьютера.' },
@@ -35,7 +32,19 @@ const faqs = [
 export function Home() {
   const navigate = useNavigate()
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [dbReviews, setDbReviews] = useState<any[]>([])
   const popular = PRODUCTS.slice(0, 10)
+
+  useEffect(() => {
+    supabase.from('bazzar_reviews')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .then(({ data }) => {
+        if (data && data.length > 0) setDbReviews(data)
+      })
+  }, [])
 
   return (
     <div>
@@ -129,13 +138,13 @@ export function Home() {
           <div className="section-head"><div><span className="kicker">Отзывы</span><h2 className="section-title" style={{ marginTop: 8 }}>Нам доверяют</h2></div></div>
           <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-60px' }}
             style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16 }}>
-            {reviews.map(r => (
-              <motion.div key={r.name} variants={fade} className="card" style={{ padding: 22 }}>
-                <div style={{ display: 'flex', gap: 3, marginBottom: 12, color: '#fbbf24' }}>{Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} size={15} />)}</div>
+            {dbReviews.map((r, i) => (
+              <motion.div key={i} variants={fade} className="card" style={{ padding: 22 }}>
+                <div style={{ display: 'flex', gap: 3, marginBottom: 12, color: '#fbbf24' }}>{Array.from({ length: r.rating || 5 }).map((_, i) => <StarIcon key={i} size={15} />)}</div>
                 <p style={{ color: 'var(--text)', lineHeight: 1.6, marginBottom: 16 }}>«{r.text}»</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--grad)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff' }}>{r.name[0]}</div>
-                  <div><div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.name}</div><div style={{ fontSize: '0.78rem', color: 'var(--text-3)' }}>{r.game}</div></div>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--grad)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff' }}>{(r.author || 'А')[0]}</div>
+                  <div><div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.author || 'Пользователь'}</div><div style={{ fontSize: '0.78rem', color: 'var(--text-3)' }}>{new Date(r.created_at).toLocaleDateString('ru-RU')}</div></div>
                 </div>
               </motion.div>
             ))}

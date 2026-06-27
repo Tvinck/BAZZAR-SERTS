@@ -1,26 +1,43 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export function Auth() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const udid = searchParams.get('udid');
-    const model = searchParams.get('model');
+    const authenticate = async () => {
+      const udid = searchParams.get('udid');
+      const model = searchParams.get('model');
 
-    if (udid) {
-      localStorage.setItem('apple_udid', udid);
-      if (model) {
-        localStorage.setItem('apple_device_model', model);
+      if (udid) {
+        localStorage.setItem('apple_udid', udid);
+        if (model) {
+          localStorage.setItem('apple_device_model', model);
+        }
+        
+        // Check if user exists in Supabase
+        const { data, error } = await supabase.from('bazzar_users').select('udid').eq('udid', udid).maybeSingle();
+        
+        // If not found, create a basic profile
+        if (!data && !error) {
+          await supabase.from('bazzar_users').insert([{
+            udid,
+            status: 'thinking',
+            created_at: new Date().toISOString()
+          }]);
+        }
+        
+        // Redirect to personal cabinet
+        navigate('/cabinet', { replace: true });
+      } else {
+        // If no UDID, redirect back home
+        navigate('/', { replace: true });
       }
-      
-      // Redirect to personal cabinet
-      navigate('/cabinet', { replace: true });
-    } else {
-      // If no UDID, redirect back home
-      navigate('/', { replace: true });
-    }
+    };
+    
+    authenticate();
   }, [searchParams, navigate]);
 
   return (
