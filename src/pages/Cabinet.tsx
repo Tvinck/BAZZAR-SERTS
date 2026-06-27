@@ -20,6 +20,12 @@ export function Cabinet() {
   const [udid, setUdid] = useState<string | null>(null)
   const [profile, setProfile] = useState<any>(null)
   
+  // Review Modal State
+  const [isReviewOpen, setIsReviewOpen] = useState(false)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewStatus, setReviewStatus] = useState('')
+  
   useEffect(() => {
     const currentUdid = localStorage.getItem('apple_udid')
     setUdid(currentUdid)
@@ -46,6 +52,25 @@ export function Cabinet() {
     localStorage.removeItem('apple_udid')
     localStorage.removeItem('apple_device_model')
     setUdid(null)
+  }
+
+  const submitReview = async () => {
+    if (!reviewText.trim()) return
+    setReviewStatus('loading')
+    const { error } = await supabase.from('bazzar_reviews').insert([{
+      product_id: profile?.plan?.includes('VIP') ? 'cert-vip' : 'cert-base',
+      author: 'Клиент ' + udid?.substring(udid.length - 4),
+      rating: reviewRating,
+      text: reviewText,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    }])
+    if (!error) {
+      setReviewStatus('success')
+      setTimeout(() => { setIsReviewOpen(false); setReviewStatus(''); setReviewText(''); setReviewRating(5) }, 2000)
+    } else {
+      setReviewStatus('error')
+    }
   }
 
   if (!udid) {
@@ -157,10 +182,57 @@ export function Cabinet() {
           </motion.div>
         </AnimatePresence>
 
-        <div style={{ marginTop: 28, textAlign: 'center' }}>
+        <div style={{ marginTop: 28, textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center' }}>
           <Link to="/catalog" className="btn btn-ghost" style={{ display: 'inline-flex' }}>Перейти в каталог</Link>
+          <button onClick={() => setIsReviewOpen(true)} className="btn btn-primary" style={{ display: 'inline-flex' }}>Оставить отзыв</button>
         </div>
       </div>
+      
+      {/* Review Modal */}
+      <AnimatePresence>
+        {isReviewOpen && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsReviewOpen(false)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="card" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 1 }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: 16 }}>Ваш отзыв</h3>
+              
+              {reviewStatus === 'success' ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{ color: 'var(--green)', display: 'inline-flex', marginBottom: 12 }}><CheckIcon size={48} /></div>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: 8 }}>Спасибо!</h4>
+                  <p style={{ color: 'var(--text-2)', fontSize: '0.9rem' }}>Ваш отзыв отправлен на модерацию и скоро появится на сайте.</p>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20 }}>
+                    {[1,2,3,4,5].map(star => (
+                      <button key={star} onClick={() => setReviewRating(star)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: star <= reviewRating ? '#fbbf24' : 'var(--text-3)' }}>
+                        <StarIcon size={32} />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea 
+                    className="field" 
+                    placeholder="Расскажите о вашем опыте..." 
+                    value={reviewText} 
+                    onChange={e => setReviewText(e.target.value)}
+                    style={{ minHeight: 100, resize: 'none', marginBottom: 16 }}
+                  />
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setIsReviewOpen(false)}>Отмена</button>
+                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={submitReview} disabled={!reviewText.trim() || reviewStatus === 'loading'}>
+                      {reviewStatus === 'loading' ? 'Отправка...' : 'Отправить'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <style>{`@media (max-width:880px){ .bal-grid{ grid-template-columns:1fr !important } }`}</style>
     </div>
   )

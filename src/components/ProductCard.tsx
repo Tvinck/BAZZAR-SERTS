@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from '../ui/nav'
 import { StarIcon, BoltIcon } from '../ui/Icons'
 import type { Product } from '../data/catalog'
+import { trackEvent } from '../lib/analytics'
 
 const badgeMap = {
   hot: { cls: 'badge-hot', text: '🔥 Хит' },
@@ -15,7 +16,12 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.4 }}>
-      <Link to={`/product/${product.id}`} className="card card-hover" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <Link 
+        to={`/product/${product.id}`} 
+        className="card card-hover" 
+        style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
+        onClick={() => trackEvent('add_to_cart')}
+      >
         <div style={{ position: 'relative', height: 160, background: 'var(--bg)', borderBottom: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
           {product.image ? (
             <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} />

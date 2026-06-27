@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { trackEvent } from '../lib/analytics';
 
 export function Auth() {
   const [searchParams] = useSearchParams();
@@ -27,6 +28,7 @@ export function Auth() {
             status: 'thinking',
             created_at: new Date().toISOString()
           }]);
+          trackEvent('registrations');
         }
         
         // Redirect to personal cabinet

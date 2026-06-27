@@ -11,9 +11,20 @@ import { Cart } from './pages/Cart'
 import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
 
+import { initAnalytics, trackEvent } from './lib/analytics'
+
 function ScrollTop() {
   const { pathname } = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  
+  useEffect(() => { 
+    window.scrollTo(0, 0)
+    trackEvent('views')
+  }, [pathname])
+
+  useEffect(() => {
+    initAnalytics()
+  }, [])
+  
   return null
 }
 

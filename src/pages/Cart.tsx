@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import { TrashIcon, MinusIcon, PlusIcon, TagIcon, ShieldIcon, CartIcon } from '../ui/Icons'
 import { PRODUCTS } from '../data/catalog'
 import { PaymentModal } from '../components/PaymentModal'
+import { trackEvent } from '../lib/analytics'
+import { supabase } from '../lib/supabase'
 
 export function Cart() {
   const navigate = useNavigate()
@@ -20,9 +22,23 @@ export function Cart() {
   const total = subtotal
   const hasCert = items.some(i => i.category === 'certs')
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     setIsPaymentOpen(false)
     setItems([]) // Clear cart
+    
+    // Analytics: track order
+    trackEvent('orders')
+    
+    // Update user profile if logged in
+    const udid = localStorage.getItem('apple_udid')
+    if (udid) {
+      await supabase.from('bazzar_users').update({
+        status: 'bought',
+        last_purchase: new Date().toISOString(),
+        plan: hasCert ? 'Apple Developer (1 Год)' : 'Установка приложений'
+      }).eq('udid', udid)
+    }
+    
     navigate('/cabinet')
   }
 
