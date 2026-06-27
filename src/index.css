@@ -171,11 +171,11 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
   .grid-products { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
 }
 @media (max-width: 600px) {
-  .grid-products { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .grid-products { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 @media (max-width: 360px) {
   /* Для очень маленьких экранов (iPhone SE 1st gen - 320px) делаем 1 колонку */
-  .grid-products { grid-template-columns: 1fr; gap: 12px; }
+  .grid-products { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 
 /* Удаленные классы mesh */

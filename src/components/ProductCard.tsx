@@ -36,11 +36,11 @@ export function ProductCard({ product }: { product: Product }) {
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.02rem', color: 'var(--text)', wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>{product.title}</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginTop: 2, wordWrap: 'break-word' }}>{product.subtitle}</div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0 14px', fontSize: '0.8rem', color: 'var(--text-2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '12px 0 14px', fontSize: '0.8rem', color: 'var(--text-2)', flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)' }}>
               <StarIcon size={13} /> <span style={{ color: 'var(--text-2)' }}>{product.rating > 0 ? product.rating.toFixed(1) : 'Новый'}</span>
             </span>
-            <span style={{ color: 'var(--text-3)' }}>{product.sold > 0 ? `${product.sold.toLocaleString('ru-RU')} продаж` : 'Пока нет продаж'}</span>
+            <span style={{ color: 'var(--text-3)', fontSize: '0.75rem' }}>{product.sold > 0 ? `${product.sold.toLocaleString('ru-RU')} продаж` : 'Пока нет продаж'}</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto', paddingTop: 12 }}>
