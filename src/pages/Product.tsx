@@ -50,7 +50,12 @@ export function Product() {
     })
   }, [id, navigate])
 
-  const denominations = [
+  const isCert = product?.category === 'certs'
+  const denominations = isCert ? [
+    { label: 'Базовый (40 дней)', price: 400 }, 
+    { label: 'Продвинутый (180 дней)', price: 990 }, 
+    { label: 'VIP (330 дней)', price: 1490 }
+  ] : [
     { label: 'Базовый', mult: 1 }, { label: 'Стандарт', mult: 2.6 }, { label: 'Премиум', mult: 5.1 }, { label: 'Мега', mult: 9.4 }
   ]
   const [denom, setDenom] = useState(0)
@@ -61,7 +66,9 @@ export function Product() {
     return <div style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-3)' }}>Загрузка...</div>
   }
 
-  const unit = product.price > 0 ? Math.round(product.price * denominations[denom].mult) : 0
+  const unit = product.price > 0 
+    ? (isCert ? denominations[denom].price : Math.round(product.price * (denominations[denom].mult || 1))) 
+    : 0
   const total = unit * qty
 
   return (
@@ -142,7 +149,7 @@ export function Product() {
                   <button key={d.label} onClick={() => setDenom(i)}
                     style={{ padding: '11px 12px', borderRadius: 'var(--radius-sm)', textAlign: 'left', cursor: 'pointer', border: `1px solid ${denom === i ? 'var(--text)' : 'var(--hair)'}`, background: denom === i ? 'var(--text)' : 'var(--surface-2)', color: denom === i ? 'var(--bg)' : 'var(--text)' }}>
                     <div style={{ fontWeight: 800, fontSize: '0.86rem' }}>{d.label}</div>
-                    <div style={{ fontSize: '0.8rem', color: denom === i ? 'var(--bg)' : 'var(--text-3)' }}>{Math.round(product.price * d.mult).toLocaleString('ru-RU')} ₽</div>
+                    <div style={{ fontSize: '0.8rem', color: denom === i ? 'var(--bg)' : 'var(--text-3)' }}>{(isCert ? d.price : Math.round(product.price * (d.mult || 1))).toLocaleString('ru-RU')} ₽</div>
                   </button>
                 ))}
               </div>
@@ -170,7 +177,12 @@ export function Product() {
                   className="btn btn-primary" 
                   style={{ flex: 1, height: 52 }} 
                   onClick={() => {
-                    addItem({ ...product, price: unit, qty });
+                    addItem({ 
+                      ...product, 
+                      title: isCert ? `${product.title} - ${denominations[denom].label}` : product.title,
+                      price: unit, 
+                      qty 
+                    });
                     navigate('/cart');
                   }}
                 >

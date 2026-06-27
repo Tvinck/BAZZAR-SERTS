@@ -45,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto', paddingTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem' }}>{product.price > 0 ? `${product.price.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem' }}>{product.price > 0 ? (product.category === 'certs' ? `от ${product.price.toLocaleString('ru-RU')} ₽` : `${product.price.toLocaleString('ru-RU')} ₽`) : 'Бесплатно'}</span>
               {product.oldPrice && <span style={{ fontSize: '0.82rem', color: 'var(--text-3)', textDecoration: 'line-through' }}>{product.oldPrice.toLocaleString('ru-RU')}</span>}
             </div>
             <span className="btn btn-primary" style={{ width: '100%', padding: '10px', fontSize: '0.9rem', borderRadius: 10, justifyContent: 'center' }}>Выбрать</span>
