@@ -25,7 +25,7 @@ export function Catalog() {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div className="container" style={{ position: 'relative', zIndex: 2, padding: '36px 0 60px' }}>
+      <div className="container" style={{ position: 'relative', zIndex: 2, paddingTop: 36, paddingBottom: 60 }}>
         <span className="kicker">Каталог</span>
         <h1 style={{ fontSize: 'clamp(1.8rem,4vw,2.6rem)', margin: '8px 0 24px' }}>Все цифровые товары</h1>
 
@@ -50,7 +50,7 @@ export function Catalog() {
           </aside>
 
           {/* Контент */}
-          <div>
+          <div style={{ minWidth: 0, width: '100%' }}>
             {/* Мобильные категории */}
             <div className="desktop-hide" style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
               <button onClick={() => setActive(null)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === null ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>Все</button>
