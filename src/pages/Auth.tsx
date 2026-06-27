@@ -30,6 +30,23 @@ export function Auth() {
           }]);
           trackEvent('registrations');
         }
+
+        // Link pending GGsel order if exists
+        const pendingOrder = localStorage.getItem('pending_ggsel_order');
+        if (pendingOrder) {
+          try {
+            await fetch('/api/ggsel/link', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ uniquecode: pendingOrder, udid })
+            });
+            localStorage.removeItem('pending_ggsel_order');
+            navigate('/success?uniquecode=' + pendingOrder, { replace: true });
+            return;
+          } catch (e) {
+            console.error('Failed to link order', e);
+          }
+        }
         
         // Redirect to personal cabinet
         navigate('/cabinet', { replace: true });
