@@ -46,6 +46,10 @@ export const UserIcon = ({ size = 24 }: P) => (<svg {...base(size)}><circle cx="
 
 export const MenuIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M4 7h16M4 12h16M4 17h11" {...stroke} /></svg>)
 
+export const HomeIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" {...stroke} /><path d="M9 22V12h6v10" {...stroke} /></svg>)
+
+export const ListIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" {...stroke} /></svg>)
+
 export const BoltIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M13.5 2.5L5 13.5h5.5L9.5 21.5 19 10.5h-5.5l1.5-8z" fill="currentColor" /></svg>)
 
 export const ShieldIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M12 3l7 3v5.5c0 4.6-3 7.8-7 9-4-1.2-7-4.4-7-9V6l7-3z" {...stroke} /><path d="M9 12l2 2 4-4.5" {...stroke} /></svg>)

@@ -124,8 +124,7 @@ export function PaymentModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="card" 
-          style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 32, overflow: 'hidden' }}
+          className="card payment-modal" 
         >
           {success ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>

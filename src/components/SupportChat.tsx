@@ -110,9 +110,9 @@ export const SupportChat = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.85, y: 30 }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          className="support-chat-window"
           style={{
-            position: 'fixed', bottom: 30, right: 30, zIndex: 50,
-            width: 380, height: 540,
+            zIndex: 50,
             background: 'var(--bg)',
             border: '1px solid var(--hair)',
             borderRadius: 16,

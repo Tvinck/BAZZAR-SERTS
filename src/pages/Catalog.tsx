@@ -49,10 +49,18 @@ export function Catalog() {
 
           {/* Контент */}
           <div>
+            {/* Мобильные категории */}
+            <div className="desktop-hide" style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4 }}>
+              <button onClick={() => setActive(null)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === null ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>Все</button>
+              {CATEGORIES.map(c => (
+                <button key={c.id} onClick={() => setActive(c.id)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === c.id ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>{c.title}</button>
+              ))}
+            </div>
+
             <div className="card" style={{ display: 'flex', gap: 12, padding: 12, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
                 <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={17} /></span>
-                <input className="field" value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск по каталогу…" style={{ paddingLeft: 38, height: 44 }} />
+                <input className="field" value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск…" style={{ paddingLeft: 38, height: 44 }} />
               </div>
               <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
                 {SORTS.map((s, i) => (

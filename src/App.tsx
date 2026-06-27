@@ -27,6 +27,34 @@ function NavBridge({ children }: { children: ReactNode }) {
   return <NavProvider navigate={(to) => navigate(to)}>{children}</NavProvider>
 }
 
+import { HomeIcon, ListIcon, CartIcon, UserIcon as TabUserIcon } from './ui/Icons'
+
+function MobileNav() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  
+  return (
+    <div className="desktop-hide bottom-nav">
+      <button className={`bottom-nav-item ${pathname === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>
+        <HomeIcon size={22} />
+        <span>Главная</span>
+      </button>
+      <button className={`bottom-nav-item ${pathname === '/catalog' ? 'active' : ''}`} onClick={() => navigate('/catalog')}>
+        <ListIcon size={22} />
+        <span>Каталог</span>
+      </button>
+      <button className={`bottom-nav-item ${pathname === '/cart' ? 'active' : ''}`} onClick={() => navigate('/cart')}>
+        <CartIcon size={22} />
+        <span>Корзина</span>
+      </button>
+      <button className={`bottom-nav-item ${pathname === '/cabinet' ? 'active' : ''}`} onClick={() => navigate('/cabinet')}>
+        <TabUserIcon size={22} />
+        <span>Кабинет</span>
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -45,8 +73,10 @@ export default function App() {
           </Routes>
         </main>
         <Footer />
+        <MobileNav />
         <SupportChat />
       </NavBridge>
     </BrowserRouter>
   )
 }
+

@@ -22,7 +22,7 @@ export function Header() {
         </div>
 
         {/* Навигация */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="mobile-hide" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/catalog')} className="btn btn-ghost" style={{ padding: '8px 16px', border: 'none' }}>
             Каталог
           </motion.button>
