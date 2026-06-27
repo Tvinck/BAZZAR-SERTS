@@ -88,8 +88,9 @@ export const SupportChat = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={() => setIsOpen(true)}
+          className="support-chat-btn"
           style={{
-            position: 'fixed', bottom: 30, right: 30, zIndex: 50,
+            zIndex: 50,
             background: 'var(--text)',
             color: 'var(--bg)', padding: '14px 20px', borderRadius: 12,
             display: 'flex', alignItems: 'center', gap: 10,
