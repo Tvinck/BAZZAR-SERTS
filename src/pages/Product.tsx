@@ -14,6 +14,7 @@ export function Product() {
   ]
   const [denom, setDenom] = useState(0)
   const [qty, setQty] = useState(1)
+  const [isFavorite, setIsFavorite] = useState(false)
   const unit = Math.round(product.price * denominations[denom].mult)
   const total = unit * qty
   const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 5)
@@ -117,7 +118,9 @@ export function Product() {
 
               <div style={{ display: 'flex', gap: 10 }}>
                 <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }} className="btn btn-primary" style={{ flex: 1, height: 52 }} onClick={() => navigate('/cart')}>Купить сейчас</motion.button>
-                <button className="btn btn-ghost" style={{ width: 52, height: 52, padding: 0 }} aria-label="В избранное"><HeartIcon size={19} /></button>
+                <button onClick={() => setIsFavorite(!isFavorite)} className="btn btn-ghost" style={{ width: 52, height: 52, padding: 0, color: isFavorite ? 'var(--red)' : 'var(--text)' }} aria-label="В избранное">
+                  <HeartIcon size={19} />
+                </button>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 18 }}>

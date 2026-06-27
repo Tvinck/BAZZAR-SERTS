@@ -150,7 +150,7 @@ export function Cabinet() {
                       </div>
                       <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
-                      <button className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem' }}>В поддержку</button>
+                      <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
                     </div>
                   )
                 }) : (
