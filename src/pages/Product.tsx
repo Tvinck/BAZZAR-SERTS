@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { StarIcon, BoltIcon, ShieldIcon, ChevronRightIcon, MinusIcon, PlusIcon, HeartIcon, VerifyIcon } from '../ui/Icons'
 import { ProductCard } from '../components/ProductCard'
 import { useCart } from '../hooks/useCart'
@@ -163,6 +163,35 @@ export function Product() {
                   <button onClick={() => setQty(q => q + 1)} style={qtyBtn}><PlusIcon size={16} /></button>
                 </div>
               </div>
+
+              <AnimatePresence>
+                {qty > 1 && isCert && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: -6, marginBottom: 18 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{ 
+                      padding: '12px 14px', 
+                      background: 'rgba(239, 68, 68, 0.1)', 
+                      border: '1px solid rgba(239, 68, 68, 0.2)', 
+                      borderRadius: 12,
+                      color: 'var(--red)',
+                      fontSize: '0.82rem',
+                      lineHeight: 1.5,
+                      display: 'flex',
+                      gap: 10,
+                      alignItems: 'flex-start'
+                    }}>
+                      <span style={{ marginTop: 2, fontSize: '1rem' }}>⚠️</span>
+                      <div>
+                        <b>Не рекомендуем</b> покупать несколько сертификатов через один аккаунт. Лучше оформлять покупку напрямую с того устройства, на которое вы хотите приобрести сертификат.
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Итого */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '16px 0', borderTop: '1px solid var(--hair)', borderBottom: '1px solid var(--hair)', marginBottom: 18 }}>
