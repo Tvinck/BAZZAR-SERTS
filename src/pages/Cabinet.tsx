@@ -33,8 +33,20 @@ export function Cabinet() {
   const submitReview = async () => {
     if (!reviewText.trim()) return
     setReviewStatus('loading')
+
+    let targetProductId = userOrders[0]?.productId;
+    if (!targetProductId) {
+       const { data } = await supabase.from('bazzar_products').select('id').eq('category', 'certs').eq('active', true).limit(1).single();
+       targetProductId = data?.id;
+    }
+    
+    if (!targetProductId) {
+       setReviewStatus('error');
+       return;
+    }
+
     const { error } = await supabase.from('bazzar_reviews').insert([{
-      product_id: profile?.plan?.includes('VIP') ? 'cert-vip' : 'cert-base',
+      product_id: targetProductId,
       author: 'Клиент ' + udid?.substring(udid.length - 4),
       rating: reviewRating,
       text: reviewText,

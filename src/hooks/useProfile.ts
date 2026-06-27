@@ -11,6 +11,7 @@ export interface OrderItem {
   emoji: string;
   grad: string;
   ipaUrl: string | null;
+  productId?: string;
 }
 
 /**
@@ -54,7 +55,7 @@ export function useProfile() {
             // Fetch product to see if it has an ipa_url
             const { data: prod } = await supabase
               .from('bazzar_products')
-              .select('ipa_url')
+              .select('id, ipa_url')
               .eq('title', userData.plan)
               .single();
               
@@ -68,7 +69,8 @@ export function useProfile() {
               status: userData.status === 'bought' ? 'done' : 'progress',
               emoji: userData.plan.includes('Developer') ? '📃' : (userData.plan.includes('VIP') ? '👑' : '⚡'),
               grad: 'linear-gradient(135deg,#10b981,#1db954)',
-              ipaUrl
+              ipaUrl,
+              productId: prod?.id
             };
             
             setOrders([order]);
