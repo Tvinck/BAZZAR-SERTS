@@ -29,28 +29,36 @@ function NavBridge({ children }: { children: ReactNode }) {
 
 import { HomeIcon, ListIcon, CartIcon, UserIcon as TabUserIcon } from './ui/Icons'
 
+import { motion } from 'framer-motion'
+
 function MobileNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   
+  const navItems = [
+    { path: '/', label: 'Главная', icon: HomeIcon },
+    { path: '/catalog', label: 'Каталог', icon: ListIcon },
+    { path: '/cart', label: 'Корзина', icon: CartIcon },
+    { path: '/cabinet', label: 'Кабинет', icon: TabUserIcon },
+  ]
+  
   return (
     <div className="desktop-hide bottom-nav">
-      <button className={`bottom-nav-item ${pathname === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>
-        <HomeIcon size={22} />
-        <span>Главная</span>
-      </button>
-      <button className={`bottom-nav-item ${pathname === '/catalog' ? 'active' : ''}`} onClick={() => navigate('/catalog')}>
-        <ListIcon size={22} />
-        <span>Каталог</span>
-      </button>
-      <button className={`bottom-nav-item ${pathname === '/cart' ? 'active' : ''}`} onClick={() => navigate('/cart')}>
-        <CartIcon size={22} />
-        <span>Корзина</span>
-      </button>
-      <button className={`bottom-nav-item ${pathname === '/cabinet' ? 'active' : ''}`} onClick={() => navigate('/cabinet')}>
-        <TabUserIcon size={22} />
-        <span>Кабинет</span>
-      </button>
+      {navItems.map(item => {
+        const isActive = pathname === item.path
+        return (
+          <motion.button 
+            key={item.path}
+            whileTap={{ scale: 0.88 }}
+            className={`bottom-nav-item ${isActive ? 'active' : ''}`} 
+            onClick={() => navigate(item.path)}
+          >
+            <item.icon size={22} />
+            {isActive && <motion.span layoutId="nav-pill" className="nav-active-bg" />}
+            <span style={{ position: 'relative', zIndex: 2 }}>{item.label}</span>
+          </motion.button>
+        )
+      })}
     </div>
   )
 }
