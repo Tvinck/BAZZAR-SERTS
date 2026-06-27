@@ -205,7 +205,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 }
 
 @media (max-width: 480px) {
-  .grid-products { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .grid-products { grid-template-columns: 1fr; gap: 16px; }
 }
 
 /* Стили нижней панели навигации (Youthful Floating Dock) */
