@@ -4,10 +4,12 @@ import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { StarIcon, BoltIcon, ShieldIcon, ChevronRightIcon, MinusIcon, PlusIcon, HeartIcon, VerifyIcon } from '../ui/Icons'
 import { ProductCard } from '../components/ProductCard'
+import { useCart } from '../hooks/useCart'
 
 export function Product() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { addItem } = useCart()
   const [product, setProduct] = useState<any>(null)
   const [related, setRelated] = useState<any[]>([])
   const [reviews, setReviews] = useState<any[]>([])
@@ -168,8 +170,7 @@ export function Product() {
                   className="btn btn-primary" 
                   style={{ flex: 1, height: 52 }} 
                   onClick={() => {
-                    const cartItem = { id: product.id, title: product.title, subtitle: product.subtitle, price: unit, qty, image: product.image, emoji: product.emoji, category: product.category };
-                    localStorage.setItem('bazzar_cart', JSON.stringify([cartItem]));
+                    addItem({ ...product, price: unit, qty });
                     navigate('/cart');
                   }}
                 >

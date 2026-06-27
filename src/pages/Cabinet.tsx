@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
+import { useProfile } from '../hooks/useProfile'
 import { PackageIcon, UserIcon, SettingsIcon, CheckIcon, StarIcon, ClockIcon, VerifyIcon, LogOutIcon } from '../ui/Icons'
 
 const statusMap: Record<string, { text: string; color: string; bg: string }> = {
@@ -15,53 +16,19 @@ const TABS = [
 ]
 
 export function Cabinet() {
+  const { udid, profile, orders: userOrders, loading, logout } = useProfile()
   const [tab, setTab] = useState('orders')
   const [copied, setCopied] = useState(false)
-  const [udid, setUdid] = useState<string | null>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [ipaUrl, setIpaUrl] = useState<string | null>(null)
   
   // Review Modal State
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const [reviewText, setReviewText] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewStatus, setReviewStatus] = useState('')
-  
-  useEffect(() => {
-    const currentUdid = localStorage.getItem('apple_udid')
-    setUdid(currentUdid)
-    if (currentUdid) {
-      supabase.from('bazzar_users').select('*').eq('udid', currentUdid).single().then(({ data }) => {
-        if (data) {
-          setProfile(data)
-          if (data.plan) {
-            supabase.from('bazzar_products').select('ipa_url').eq('title', data.plan).single().then(({ data: prod }) => {
-              if (prod?.ipa_url) setIpaUrl(prod.ipa_url)
-            })
-          }
-        }
-      })
-    }
-  }, [])
-
-  const userOrders = profile?.plan ? [{
-    id: 'BZ-' + profile.udid.substring(profile.udid.length - 5).toUpperCase(),
-    title: profile.plan,
-    date: profile.last_purchase ? new Date(profile.last_purchase).toLocaleDateString('ru-RU') : 'Недавно',
-    sum: profile.plan.includes('VIP') ? 1500 : (profile.plan.includes('1 Год') || profile.plan.includes('Apple') ? 800 : 0),
-    status: profile.status === 'bought' ? 'done' : 'progress',
-    emoji: profile.plan.includes('Developer') ? '📃' : (profile.plan.includes('VIP') ? '👑' : '⚡'),
-    grad: 'linear-gradient(135deg,#10b981,#1db954)',
-    ipaUrl: ipaUrl
-  }] : []
 
   const copyRef = () => { navigator.clipboard?.writeText('bazzar.market/r/artem'); setCopied(true); setTimeout(() => setCopied(false), 1800) }
 
-  const handleLogout = () => {
-    localStorage.removeItem('apple_udid')
-    localStorage.removeItem('apple_device_model')
-    setUdid(null)
-  }
+  const handleLogout = logout
 
   const submitReview = async () => {
     if (!reviewText.trim()) return
@@ -80,6 +47,14 @@ export function Cabinet() {
     } else {
       setReviewStatus('error')
     }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+         <div style={{ color: 'var(--text-3)', fontFamily: 'var(--font-display)', fontWeight: 800 }}>ЗАГРУЗКА...</div>
+      </div>
+    )
   }
 
   if (!udid) {

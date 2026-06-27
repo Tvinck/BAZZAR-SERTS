@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState, useMemo } from 'react'
+import { useProducts } from '../hooks/useProducts'
 import { ProductCard } from '../components/ProductCard'
 import { SearchIcon, SlidersIcon, CheckIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
 import { CATEGORIES } from '../data/catalog'
@@ -10,19 +10,7 @@ export function Catalog() {
   const [active, setActive] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [sort, setSort] = useState(0)
-  const [products, setProducts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    supabase.from('bazzar_products')
-      .select('*')
-      .eq('active', true)
-      .then(({ data }) => {
-        if (data) setProducts(data)
-        setLoading(false)
-      })
-  }, [])
-
+  const { products, loading } = useProducts()
   const list = useMemo(() => {
     let r = products.filter(p =>
       (!active || p.category === active) &&
@@ -84,8 +72,14 @@ export function Catalog() {
             </div>
 
             <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 14 }}>Найдено: {list.length}</div>
-            {list.length > 0 ? (
-              <div className="grid-products">{list.map(p => <ProductCard key={p.id} product={p} />)}</div>
+            {loading ? (
+              <div className="grid-products">
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div key={i} className="card" style={{ height: 320, background: 'var(--surface-2)', animation: 'pulse 1.5s infinite' }} />
+                ))}
+              </div>
+            ) : list.length > 0 ? (
+              <div className="grid-products">{list.map(p => <ProductCard key={p.id} product={p as any} />)}</div>
             ) : (
               <div className="card" style={{ padding: 48, textAlign: 'center', color: 'var(--text-3)' }}>Ничего не найдено 🙃 Попробуйте другой запрос.</div>
             )}

@@ -1,44 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { TrashIcon, MinusIcon, PlusIcon, TagIcon, ShieldIcon, CartIcon } from '../ui/Icons'
 import { PaymentModal } from '../components/PaymentModal'
 import { trackEvent } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
+import { useCart } from '../hooks/useCart'
 
 export function Cart() {
   const navigate = useNavigate()
-  const [items, setItems] = useState<any[]>([])
+  const { items, setQty, removeItem, clearCart, subtotal } = useCart()
   
-  useEffect(() => {
-    const saved = localStorage.getItem('bazzar_cart')
-    if (saved) {
-      try { setItems(JSON.parse(saved)) } catch(e){}
-    }
-  }, [])
-  
-  const updateCart = (newItems: any[]) => {
-    setItems(newItems)
-    if (newItems.length > 0) {
-      localStorage.setItem('bazzar_cart', JSON.stringify(newItems))
-    } else {
-      localStorage.removeItem('bazzar_cart')
-    }
-  }
-
   const [promo, setPromo] = useState('')
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
-  const setQty = (id: string, d: number) => updateCart(items.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + d) } : i))
-  const remove = (id: string) => updateCart(items.filter(i => i.id !== id))
-
-  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const total = subtotal
   const hasCert = items.some(i => i.category === 'certs')
 
   const handlePaymentSuccess = async () => {
     setIsPaymentOpen(false)
-    updateCart([]) // Clear cart
+    clearCart() // Clear cart
     
     // Analytics: track order
     trackEvent('orders')
@@ -87,7 +68,7 @@ export function Cart() {
                   <span style={{ fontWeight: 700, minWidth: 16, textAlign: 'center' }}>{i.qty}</span>
                   <button onClick={() => setQty(i.id, 1)} style={qBtn}><PlusIcon size={15} /></button>
                 </div>
-                <button onClick={() => remove(i.id)} aria-label="Удалить" style={{ width: 38, height: 38, borderRadius: 10, border: '1px solid var(--hair)', background: 'transparent', color: 'var(--text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                <button onClick={() => removeItem(i.id)} aria-label="Удалить" style={{ width: 38, height: 38, borderRadius: 10, border: '1px solid var(--hair)', background: 'transparent', color: 'var(--text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                   onMouseEnter={e => { e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.borderColor = 'rgba(255,84,112,0.4)' }}
                   onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-3)'; e.currentTarget.style.borderColor = 'var(--hair)' }}>
                   <TrashIcon size={17} />

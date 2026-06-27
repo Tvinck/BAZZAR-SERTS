@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { useProducts } from '../hooks/useProducts'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ArrowRight, Sparkles as SparkIcon } from 'lucide-react'
 import { ProductCard } from '../components/ProductCard'
@@ -33,7 +34,9 @@ export function Home() {
   const navigate = useNavigate()
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [dbReviews, setDbReviews] = useState<any[]>([])
-  const [popular, setPopular] = useState<any[]>([])
+  
+  const { products, loading } = useProducts()
+  const popular = products.slice().sort((a, b) => b.sold - a.sold).slice(0, 10)
 
   useEffect(() => {
     supabase.from('bazzar_reviews')
@@ -43,15 +46,6 @@ export function Home() {
       .limit(6)
       .then(({ data }) => {
         if (data && data.length > 0) setDbReviews(data)
-      })
-
-    supabase.from('bazzar_products')
-      .select('*')
-      .eq('active', true)
-      .order('sold', { ascending: false })
-      .limit(10)
-      .then(({ data }) => {
-        if (data) setPopular(data)
       })
   }, [])
 
@@ -136,7 +130,13 @@ export function Home() {
             <Link to="/catalog" className="btn btn-ghost" style={{ padding: '10px 16px' }}>Смотреть всё <ArrowRight size={15} /></Link>
           </div>
           <div className="grid-products">
-            {popular.map(p => <ProductCard key={p.id} product={p} />)}
+            {loading ? (
+              [1, 2, 3, 4].map(i => (
+                <div key={i} className="card" style={{ height: 320, background: 'var(--surface-2)', animation: 'pulse 1.5s infinite' }} />
+              ))
+            ) : (
+              popular.map(p => <ProductCard key={p.id} product={p as any} />)
+            )}
           </div>
         </div>
       </section>
