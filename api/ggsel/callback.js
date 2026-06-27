@@ -19,6 +19,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'uniquecode is required' });
   }
 
+  // --- МАКЕТ ДЛЯ ТЕСТИРОВАНИЯ ---
+  if (uniquecode === 'TEST_CODE') {
+    return res.status(200).json({
+      success: true,
+      uniquecode: 'TEST_CODE',
+      item_name: 'Сертификат Apple разработчика (Тест)',
+      status: 'pending_udid'
+    });
+  }
+  // -----------------------------
+
   if (!GGSEL_API_KEY || !GGSEL_SELLER_ID) {
     console.error('GGSEL_API_KEY or GGSEL_SELLER_ID is not configured');
     return res.status(500).json({ error: 'Server configuration error' });

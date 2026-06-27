@@ -11,6 +11,7 @@ import { Cart } from './pages/Cart'
 import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
 import { Success } from './pages/Success'
+import { NotFound } from './pages/NotFound'
 
 import { initAnalytics, trackEvent } from './lib/analytics'
 
@@ -90,7 +91,7 @@ export default function App() {
             <Route path="/cabinet" element={<Cabinet />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/success" element={<Success />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />
