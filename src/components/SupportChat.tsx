@@ -25,11 +25,9 @@ export const SupportChat = () => {
 
     // Load initial messages
     const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from('support_messages')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: true })
+      const { data, error } = await supabase.rpc('get_bazzar_support_messages', {
+        p_user_id: userId
+      })
 
       if (!error && data) {
         setMessages(data)
@@ -40,25 +38,13 @@ export const SupportChat = () => {
       fetchMessages()
     }
 
-    // Subscribe to realtime changes
-    const channel = supabase.channel(`support_chat_${userId}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'support_messages',
-        filter: `user_id=eq.${userId}` 
-      }, payload => {
-        setMessages(prev => {
-          if (prev.some(m => m.message === payload.new.message && m.created_at.slice(0, 16) === payload.new.created_at.slice(0, 16))) {
-            return prev
-          }
-          return [...prev, payload.new]
-        })
-      })
-      .subscribe()
+    // Use polling since Realtime Websockets cannot pass URL query params for RLS
+    const interval = setInterval(() => {
+      if (isOpen) fetchMessages()
+    }, 3000)
 
     return () => {
-      supabase.removeChannel(channel)
+      clearInterval(interval)
     }
   }, [userId, isOpen])
 
