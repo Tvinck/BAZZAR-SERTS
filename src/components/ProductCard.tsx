@@ -37,8 +37,10 @@ export function ProductCard({ product }: { product: Product }) {
           <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginTop: 2 }}>{product.subtitle}</div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0 14px', fontSize: '0.8rem', color: 'var(--text-2)' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#fbbf24' }}><StarIcon size={13} /> <span style={{ color: 'var(--text-2)' }}>{product.rating.toFixed(1)}</span></span>
-            <span style={{ color: 'var(--text-3)' }}>{product.sold.toLocaleString('ru-RU')} продаж</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)' }}>
+              <StarIcon size={13} /> <span style={{ color: 'var(--text-2)' }}>{product.rating > 0 ? product.rating.toFixed(1) : 'Новый'}</span>
+            </span>
+            <span style={{ color: 'var(--text-3)' }}>{product.sold > 0 ? `${product.sold.toLocaleString('ru-RU')} продаж` : 'Пока нет продаж'}</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto', paddingTop: 12 }}>

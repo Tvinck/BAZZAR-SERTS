@@ -8,9 +8,9 @@ import { ProductCard } from '../components/ProductCard'
 export function Product() {
   const { id } = useParams()
   const navigate = useNavigate()
-  
   const [product, setProduct] = useState<any>(null)
   const [related, setRelated] = useState<any[]>([])
+  const [reviews, setReviews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,6 +30,16 @@ export function Product() {
           .limit(5)
           .then(({ data: relData }) => {
             setRelated(relData || [])
+          })
+          
+        // Fetch reviews
+        supabase.from('bazzar_reviews')
+          .select('*')
+          .eq('product_id', data.id)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .then(({ data: revData }) => {
+            setReviews(revData || [])
             setLoading(false)
           })
       } else {
@@ -96,17 +106,20 @@ export function Product() {
             <div className="card" style={{ padding: 24, marginTop: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <h3 style={{ fontSize: '1.2rem' }}>Отзывы</h3>
-                <span className="chip"><span style={{ color: '#fbbf24', display: 'inline-flex' }}><StarIcon size={13} /></span> {product.rating.toFixed(1)} · {Math.round(product.sold / 18)} оценок</span>
+                <span className="chip"><span style={{ color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)', display: 'inline-flex' }}><StarIcon size={13} /></span> {product.rating > 0 ? product.rating.toFixed(1) : 'Новый'} {product.sold > 0 ? `· ${Math.round(product.sold / 18)} оценок` : ''}</span>
               </div>
-              {[['Игорь', 'Пришло моментально, всё работает. Беру не первый раз 👍'], ['Sofia', 'Дешевле чем в других местах, поддержка помогла с активацией.']].map(([n, t]) => (
-                <div key={n} style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: '1px solid var(--hair)' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--bg)', flexShrink: 0 }}>{n[0]}</div>
+              
+              {reviews.length > 0 ? reviews.map((r, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: '1px solid var(--hair)' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--bg)', flexShrink: 0 }}>{(r.author || 'A')[0]}</div>
                   <div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{n}</span><span style={{ display: 'flex', gap: 1, color: '#fbbf24' }}>{Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} size={11} />)}</span></div>
-                    <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginTop: 4 }}>{t}</p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.author || 'Пользователь'}</span><span style={{ display: 'flex', gap: 1, color: '#fbbf24' }}>{Array.from({ length: r.rating || 5 }).map((_, i) => <StarIcon key={i} size={11} />)}</span></div>
+                    <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginTop: 4 }}>{r.text}</p>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ color: 'var(--text-3)', fontSize: '0.9rem', padding: '10px 0' }}>Пока нет отзывов. Станьте первым!</div>
+              )}
             </div>
           </div>
 
@@ -116,8 +129,8 @@ export function Product() {
               <h1 style={{ fontSize: '1.5rem' }}>{product.title}</h1>
               <div style={{ color: 'var(--text-3)', marginTop: 2 }}>{product.subtitle}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '12px 0 20px', fontSize: '0.84rem', color: 'var(--text-2)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#fbbf24' }}><StarIcon size={14} /> <span style={{ color: 'var(--text-2)' }}>{product.rating.toFixed(1)}</span></span>
-                <span style={{ color: 'var(--text-3)' }}>{product.sold.toLocaleString('ru-RU')} продаж</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)' }}><StarIcon size={14} /> <span style={{ color: 'var(--text-2)' }}>{product.rating > 0 ? product.rating.toFixed(1) : 'Новый'}</span></span>
+                <span style={{ color: 'var(--text-3)' }}>{product.sold > 0 ? `${product.sold.toLocaleString('ru-RU')} продаж` : 'Пока нет продаж'}</span>
               </div>
 
               {/* Номиналы */}
