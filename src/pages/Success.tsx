@@ -70,27 +70,25 @@ export function Success() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh] text-center">
-        <div className="space-y-4">
-          <div className="w-10 h-10 border-4 border-emerald-500 border-t-white rounded-full animate-spin mx-auto" />
-          <h1 className="text-xl font-bold text-white tracking-tight">Обработка заказа...</h1>
-          <p className="text-zinc-400">Связываемся с GGsel / Digiseller</p>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center' }}>
+        <div style={{ marginBottom: 24, width: 40, height: 40, border: '4px solid var(--surface-2)', borderTopColor: 'var(--text)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <h1 className="section-title" style={{ fontSize: '1.5rem', marginBottom: 8 }}>Обработка заказа...</h1>
+        <p style={{ color: 'var(--text-2)' }}>Связываемся с GGsel / Digiseller</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-        <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center', padding: '0 16px' }}>
+        <div style={{ width: 64, height: 64, background: 'rgba(248, 113, 113, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+          <svg style={{ width: 32, height: 32, color: 'var(--red)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Ошибка активации</h1>
-        <p className="text-zinc-400 max-w-sm mb-8">{error}</p>
-        <button onClick={() => navigate('/')} className="px-6 py-3 bg-zinc-800 text-white rounded-xl font-medium hover:bg-zinc-700 transition-colors">
+        <h1 className="section-title" style={{ fontSize: '2rem', marginBottom: 12 }}>Ошибка активации</h1>
+        <p style={{ color: 'var(--text-2)', maxWidth: 400, marginBottom: 32 }}>{error}</p>
+        <button onClick={() => navigate('/')} className="btn btn-primary">
           Вернуться на главную
         </button>
       </div>
@@ -101,42 +99,43 @@ export function Success() {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-md mx-auto px-4 py-12 text-center"
+      style={{ maxWidth: 480, margin: '0 auto', padding: '48px 16px', textAlign: 'center' }}
     >
-      <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div style={{ width: 80, height: 80, background: 'rgba(163, 230, 53, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+        <svg style={{ width: 40, height: 40, color: 'var(--lime)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
       
-      <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+      <h1 className="section-title" style={{ fontSize: '2.5rem', marginBottom: 12 }}>
         Спасибо за покупку!
       </h1>
-      <p className="text-zinc-400 mb-8">
+      <p style={{ color: 'var(--text-2)', marginBottom: 32, fontSize: '1.1rem' }}>
         Ваш заказ успешно оплачен. Остался всего один шаг.
       </p>
 
-      <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 mb-8 text-left space-y-4">
+      <div className="card" style={{ padding: 24, marginBottom: 32, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <div className="text-sm text-zinc-500 mb-1">Товар</div>
-          <div className="text-white font-medium">{order?.item_name || 'Сертификат Apple'}</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Товар</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{order?.item_name || 'Сертификат Apple'}</div>
         </div>
         <div>
-          <div className="text-sm text-zinc-500 mb-1">Номер заказа (Уникальный код)</div>
-          <div className="text-white font-mono text-sm bg-black/20 p-2 rounded-lg break-all">
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Номер заказа (Код)</div>
+          <div style={{ fontFamily: 'monospace', fontSize: '1rem', background: 'var(--bg)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--hair)', wordBreak: 'break-all' }}>
             {order?.uniquecode}
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white">Привязка устройства</h3>
-        <p className="text-sm text-zinc-400">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>Привязка устройства</h3>
+        <p style={{ fontSize: '0.95rem', color: 'var(--text-2)' }}>
           Для оформления сертификата разработчика нам необходим UDID вашего устройства. Нажмите кнопку ниже и установите профиль конфигурации Apple.
         </p>
         <button 
           onClick={handleGetUdid}
-          className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20 mt-4"
+          className="btn btn-primary"
+          style={{ width: '100%', marginTop: 16, padding: '16px 24px', fontSize: '1rem' }}
         >
           Получить UDID
         </button>

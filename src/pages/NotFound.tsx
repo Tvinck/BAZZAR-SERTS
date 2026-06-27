@@ -5,25 +5,25 @@ export function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', textAlign: 'center', padding: '0 16px' }}>
       <motion.div 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-32 h-32 mb-8 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 shadow-2xl"
+        style={{ width: 120, height: 120, marginBottom: 32, background: 'var(--surface-2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--hair)', boxShadow: '0 10px 40px rgba(0,0,0,0.8)' }}
       >
-        <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+        <span style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text)' }}>
           404
         </span>
       </motion.div>
       
-      <h1 className="text-3xl font-bold text-white mb-3">Страница не найдена</h1>
-      <p className="text-zinc-400 max-w-md mx-auto mb-8 text-lg">
+      <h1 className="section-title" style={{ marginBottom: 12 }}>Страница не найдена</h1>
+      <p style={{ color: 'var(--text-2)', maxWidth: 400, margin: '0 auto 32px', fontSize: '1.1rem' }}>
         Похоже, вы перешли по неверной ссылке или страница была удалена.
       </p>
 
       <button 
         onClick={() => navigate('/')} 
-        className="px-8 py-4 bg-emerald-500 text-white rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
+        className="btn btn-primary"
       >
         На главную
       </button>
