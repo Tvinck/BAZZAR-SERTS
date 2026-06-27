@@ -65,7 +65,7 @@ export function PaymentModal({
           plan_id: total > 1000 ? 'vip' : 'base',
           source: 'Bazzar Market',
           sale_price: total,
-          api_cost: 0,
+          api_cost: total > 1000 ? 3.0 : 1.0,
           status: 'pending',
           crm_status: 'pending'
         });
