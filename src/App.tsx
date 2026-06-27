@@ -14,6 +14,23 @@ import { Success } from './pages/Success'
 import { NotFound } from './pages/NotFound'
 
 import { initAnalytics, trackEvent } from './lib/analytics'
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+
+function RouteTracker() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Capture UTM source
+    const searchParams = new URLSearchParams(location.search);
+    const source = searchParams.get('utm_source') || searchParams.get('ref') || searchParams.get('source');
+    if (source) {
+      localStorage.setItem('bazzar_source', source);
+    }
+  }, [location]);
+
+  return null;
+}
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -83,6 +100,7 @@ export default function App() {
       <NavBridge>
         <Header />
         <main style={{ minHeight: '70vh' }}>
+          <RouteTracker />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Catalog />} />

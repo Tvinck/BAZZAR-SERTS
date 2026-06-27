@@ -29,6 +29,25 @@ export function Auth() {
             created_at: new Date().toISOString()
           }]);
           trackEvent('registrations');
+          
+          // Capture source and create CRM lead
+          const pendingOrder = localStorage.getItem('pending_ggsel_order');
+          const storedSource = localStorage.getItem('bazzar_source');
+          const leadSource = pendingOrder ? 'GGsel' : (storedSource || 'Сайт');
+
+          try {
+            await fetch('/api/crm/lead', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                udid, 
+                deviceModel: model,
+                source: leadSource 
+              })
+            });
+          } catch (e) {
+            console.error('Failed to create CRM lead', e);
+          }
         }
 
         // Link pending GGsel order if exists
