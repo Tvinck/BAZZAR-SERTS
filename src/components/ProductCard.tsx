@@ -33,8 +33,8 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         {/* Тело */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '14px 15px 16px' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.02rem', color: 'var(--text)' }}>{product.title}</div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginTop: 2 }}>{product.subtitle}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.02rem', color: 'var(--text)', wordWrap: 'break-word', overflowWrap: 'break-word', hyphens: 'auto' }}>{product.title}</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginTop: 2, wordWrap: 'break-word' }}>{product.subtitle}</div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0 14px', fontSize: '0.8rem', color: 'var(--text-2)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)' }}>
@@ -44,7 +44,7 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 'auto', paddingTop: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem' }}>{product.price > 0 ? (product.category === 'certs' ? `от ${product.price.toLocaleString('ru-RU')} ₽` : `${product.price.toLocaleString('ru-RU')} ₽`) : 'Бесплатно'}</span>
               {product.oldPrice && <span style={{ fontSize: '0.82rem', color: 'var(--text-3)', textDecoration: 'line-through' }}>{product.oldPrice.toLocaleString('ru-RU')}</span>}
             </div>
