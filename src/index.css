@@ -121,12 +121,26 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 /* Бейджи */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-  border: 1px solid currentColor;
+  padding: 6px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-.badge-sale { background: transparent; color: var(--red); }
-.badge-hot { background: var(--text); color: var(--bg); border: none; }
-.badge-new { background: transparent; color: var(--violet); }
+.badge-sale { 
+  background: rgba(248, 113, 113, 0.15); 
+  color: #fca5a5; 
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+.badge-hot { 
+  background: linear-gradient(135deg, #ffffff 0%, #e4e4e7 100%); 
+  color: #000; 
+  border: 1px solid rgba(255, 255, 255, 0.4); 
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
+}
+.badge-new { 
+  background: rgba(167, 139, 250, 0.15); 
+  color: #c4b5fd; 
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
 
 /* Инпут */
 .field {

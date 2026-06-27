@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
             <span style={{ fontSize: '3rem', zIndex: 1 }}>{product.emoji || '🛍️'}</span>
           )}
           {b && <span className={`badge ${b.cls}`} style={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>{b.text}</span>}
-          {discount > 0 && <span className="badge badge-sale" style={{ position: 'absolute', top: 12, right: 12, background: 'var(--bg)', color: 'var(--red)', zIndex: 2 }}>−{discount}%</span>}
+          {discount > 0 && <span className="badge badge-sale" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2 }}>−{discount}%</span>}
         </div>
         {/* Тело */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '14px 15px 16px' }}>
