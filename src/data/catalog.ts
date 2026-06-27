@@ -29,14 +29,15 @@ export interface Product {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'certs', title: 'iOS Сертификаты', subtitle: 'Базовый и VIP', emoji: '📱', grad: 'linear-gradient(135deg,#0ea5e9,#22d3ee)', count: 2 },
+  { id: 'certs', title: 'iOS Сертификаты', subtitle: 'Базовый, Продвинутый, VIP', emoji: '📱', grad: 'linear-gradient(135deg,#0ea5e9,#22d3ee)', count: 3 },
   { id: 'apps', title: 'Приложения', subtitle: 'TikTok, Spotify', emoji: '🔥', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', count: 15 },
   { id: 'tools', title: 'Утилиты', subtitle: 'Scarlet, ESing', emoji: '🛠️', grad: 'linear-gradient(135deg,#1b2838,#2a475e)', count: 5 },
 ]
 
 export const PRODUCTS: Product[] = [
-  { id: 'cert-base', title: 'Базовый Сертификат', subtitle: 'Доступ на 1 год', category: 'certs', emoji: '📃', grad: 'linear-gradient(135deg,#10b981,#1db954)', image: '/img/cert_base.png', price: 800, oldPrice: 1200, rating: 4.8, sold: 1240, badge: 'hot', delivery: '1–5 часов' },
-  { id: 'cert-vip', title: 'VIP Сертификат', subtitle: 'Защита от отзыва + Гарантия', category: 'certs', emoji: '👑', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', image: '/img/cert_vip.png', price: 1500, oldPrice: 2000, rating: 5.0, sold: 890, badge: 'hot', delivery: '1–5 часов' },
+  { id: 'cert-base', title: 'Базовый Сертификат', subtitle: 'Гарантия 40 дней', category: 'certs', emoji: '📃', grad: 'linear-gradient(135deg,#10b981,#1db954)', image: '/img/cert_base.png', price: 400, oldPrice: 490, rating: 4.8, sold: 1240, badge: 'hot', delivery: '1–5 часов' },
+  { id: 'cert-pro', title: 'Продвинутый Сертификат', subtitle: 'Гарантия 180 дней', category: 'certs', emoji: '🚀', grad: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', image: '/img/cert_pro.png', price: 990, oldPrice: 1124, rating: 4.9, sold: 430, delivery: '1–5 часов' },
+  { id: 'cert-vip', title: 'VIP Сертификат', subtitle: 'Гарантия 330 дней', category: 'certs', emoji: '👑', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', image: '/img/cert_vip.png', price: 1490, oldPrice: 1690, rating: 5.0, sold: 890, badge: 'new', delivery: '1–5 часов' },
   { id: 'app-tiktok', title: 'TikTok Dark', subtitle: 'Мод без ограничений', category: 'apps', emoji: '🎵', grad: 'linear-gradient(135deg,#1b2838,#66c0f4)', image: '/img/tiktok_dark.png', price: 0, rating: 4.9, sold: 15400, delivery: 'Моментально' },
   { id: 'app-spotify', title: 'Spotify++', subtitle: 'Premium бесплатно', category: 'apps', emoji: '🎧', grad: 'linear-gradient(135deg,#10b981,#1db954)', image: '/img/spotify_plus.png', price: 0, rating: 4.8, sold: 9200, delivery: 'Моментально' },
   { id: 'tool-scarlet', title: 'Scarlet', subtitle: 'Установщик IPA', category: 'tools', emoji: '🔴', grad: 'linear-gradient(135deg,#ef4444,#7c1d1d)', image: '/img/scarlet.png', price: 0, rating: 4.7, sold: 21000, badge: 'hot', delivery: 'Моментально' },
