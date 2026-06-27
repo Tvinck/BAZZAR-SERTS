@@ -1,17 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { TrashIcon, MinusIcon, PlusIcon, TagIcon, ShieldIcon, CartIcon } from '../ui/Icons'
-import { PRODUCTS } from '../data/catalog'
 import { PaymentModal } from '../components/PaymentModal'
 import { trackEvent } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 export function Cart() {
   const navigate = useNavigate()
-  const [items, setItems] = useState(
-    [PRODUCTS[0], PRODUCTS[5]].map(p => ({ ...p, qty: 1 }))
-  )
+  const [items, setItems] = useState<any[]>([])
+  
+  useEffect(() => {
+    // Demo: prefill cart with 2 products
+    supabase.from('bazzar_products').select('*').limit(2).then(({ data }) => {
+      if (data) {
+        setItems(data.map(p => ({ ...p, qty: 1 })))
+      }
+    })
+  }, [])
   const [promo, setPromo] = useState('')
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
 
@@ -32,10 +38,11 @@ export function Cart() {
     // Update user profile if logged in
     const udid = localStorage.getItem('apple_udid')
     if (udid) {
+      const planName = items.length > 0 ? items[0].title : 'Неизвестно'
       await supabase.from('bazzar_users').update({
         status: 'bought',
         last_purchase: new Date().toISOString(),
-        plan: hasCert ? 'Apple Developer (1 Год)' : 'Установка приложений'
+        plan: planName
       }).eq('udid', udid)
     }
     

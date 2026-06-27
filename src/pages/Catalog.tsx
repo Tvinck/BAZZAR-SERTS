@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { ProductCard } from '../components/ProductCard'
 import { SearchIcon, SlidersIcon, CheckIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
-import { CATEGORIES, PRODUCTS } from '../data/catalog'
+import { CATEGORIES } from '../data/catalog'
 
 const SORTS = ['Популярные', 'Сначала дешёвые', 'Сначала дорогие', 'Высокий рейтинг']
 
@@ -9,17 +10,30 @@ export function Catalog() {
   const [active, setActive] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [sort, setSort] = useState(0)
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.from('bazzar_products')
+      .select('*')
+      .eq('active', true)
+      .then(({ data }) => {
+        if (data) setProducts(data)
+        setLoading(false)
+      })
+  }, [])
 
   const list = useMemo(() => {
-    let r = PRODUCTS.filter(p =>
+    let r = products.filter(p =>
       (!active || p.category === active) &&
-      (!q || (p.title + p.subtitle).toLowerCase().includes(q.toLowerCase()))
+      (!q || (p.title + (p.subtitle || '')).toLowerCase().includes(q.toLowerCase()))
     )
+    if (sort === 0) r = [...r].sort((a, b) => b.sold - a.sold)
     if (sort === 1) r = [...r].sort((a, b) => a.price - b.price)
     if (sort === 2) r = [...r].sort((a, b) => b.price - a.price)
     if (sort === 3) r = [...r].sort((a, b) => b.rating - a.rating)
     return r
-  }, [active, q, sort])
+  }, [active, q, sort, products])
 
   return (
     <div style={{ position: 'relative' }}>

@@ -19,6 +19,7 @@ export function Cabinet() {
   const [copied, setCopied] = useState(false)
   const [udid, setUdid] = useState<string | null>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [ipaUrl, setIpaUrl] = useState<string | null>(null)
   
   // Review Modal State
   const [isReviewOpen, setIsReviewOpen] = useState(false)
@@ -31,7 +32,14 @@ export function Cabinet() {
     setUdid(currentUdid)
     if (currentUdid) {
       supabase.from('bazzar_users').select('*').eq('udid', currentUdid).single().then(({ data }) => {
-        if (data) setProfile(data)
+        if (data) {
+          setProfile(data)
+          if (data.plan) {
+            supabase.from('bazzar_products').select('ipa_url').eq('title', data.plan).single().then(({ data: prod }) => {
+              if (prod?.ipa_url) setIpaUrl(prod.ipa_url)
+            })
+          }
+        }
       })
     }
   }, [])
@@ -43,7 +51,8 @@ export function Cabinet() {
     sum: profile.plan.includes('VIP') ? 1500 : (profile.plan.includes('1 Год') || profile.plan.includes('Apple') ? 800 : 0),
     status: profile.status === 'bought' ? 'done' : 'progress',
     emoji: profile.plan.includes('Developer') ? '📃' : (profile.plan.includes('VIP') ? '👑' : '⚡'),
-    grad: 'linear-gradient(135deg,#10b981,#1db954)'
+    grad: 'linear-gradient(135deg,#10b981,#1db954)',
+    ipaUrl: ipaUrl
   }] : []
 
   const copyRef = () => { navigator.clipboard?.writeText('bazzar.market/r/artem'); setCopied(true); setTimeout(() => setCopied(false), 1800) }
@@ -150,7 +159,11 @@ export function Cabinet() {
                       </div>
                       <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
-                      <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
+                      {o.ipaUrl ? (
+                        <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Скачать IPA</a>
+                      ) : (
+                        <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
+                      )}
                     </div>
                   )
                 }) : (

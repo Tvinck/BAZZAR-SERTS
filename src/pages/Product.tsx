@@ -1,24 +1,56 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { StarIcon, BoltIcon, ShieldIcon, ChevronRightIcon, MinusIcon, PlusIcon, HeartIcon, VerifyIcon } from '../ui/Icons'
 import { ProductCard } from '../components/ProductCard'
-import { PRODUCTS } from '../data/catalog'
 
 export function Product() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const product = PRODUCTS.find(p => p.id === id) || PRODUCTS[0]
+  
+  const [product, setProduct] = useState<any>(null)
+  const [related, setRelated] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setLoading(true);
+    
+    // Fetch current product
+    supabase.from('bazzar_products').select('*').eq('id', id).single().then(({ data }) => {
+      if (data) {
+        setProduct(data)
+        // Fetch related products
+        supabase.from('bazzar_products')
+          .select('*')
+          .eq('category', data.category)
+          .neq('id', data.id)
+          .eq('active', true)
+          .limit(5)
+          .then(({ data: relData }) => {
+            setRelated(relData || [])
+            setLoading(false)
+          })
+      } else {
+        navigate('/catalog') // not found
+      }
+    })
+  }, [id, navigate])
+
   const denominations = [
     { label: 'Базовый', mult: 1 }, { label: 'Стандарт', mult: 2.6 }, { label: 'Премиум', mult: 5.1 }, { label: 'Мега', mult: 9.4 }
   ]
   const [denom, setDenom] = useState(0)
   const [qty, setQty] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
-  const unit = Math.round(product.price * denominations[denom].mult)
+  
+  if (loading || !product) {
+    return <div style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-3)' }}>Загрузка...</div>
+  }
+
+  const unit = product.price > 0 ? Math.round(product.price * denominations[denom].mult) : 0
   const total = unit * qty
-  const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 5)
-  const fallback = related.length < 5 ? PRODUCTS.filter(p => p.id !== product.id).slice(0, 5) : related
 
   return (
     <div style={{ position: 'relative' }}>
@@ -51,7 +83,7 @@ export function Product() {
                 Гарантия активации и быстрая поддержка в чате 24/7. Подходит для аккаунтов любого региона.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginTop: 18 }}>
-                {[['Платформа', 'Все регионы'], ['Тип', 'Цифровой код'], ['Выдача', product.delivery], ['Гарантия', '24 часа']].map(([k, v]) => (
+                {[['Платформа', 'Все регионы'], ['Тип', 'Цифровой код'], ['Выдача', product.delivery], ['Гарантия', product.warranty || 'Без гарантии']].map(([k, v]) => (
                   <div key={k} style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
                     <div style={{ fontSize: '0.74rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>{k}</div>
                     <div style={{ fontWeight: 700, fontSize: '0.92rem', marginTop: 3 }}>{v}</div>
@@ -125,7 +157,7 @@ export function Product() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 18 }}>
                 <Row icon={<span style={{ color: 'var(--green)', display: 'flex' }}><BoltIcon size={16} /></span>} text={<>Выдача: <b>{product.delivery}</b></>} />
-                <Row icon={<span style={{ color: 'var(--cyan)', display: 'flex' }}><ShieldIcon size={16} /></span>} text="Гарантия возврата 24 часа" />
+                <Row icon={<span style={{ color: 'var(--cyan)', display: 'flex' }}><ShieldIcon size={16} /></span>} text={product.warranty ? `Гарантия: ${product.warranty}` : "Без гарантии"} />
                 <Row icon={<span style={{ color: 'var(--violet)', display: 'flex' }}><VerifyIcon size={16} /></span>} text="Официально от BAZZAR" />
               </div>
             </div>
@@ -133,10 +165,12 @@ export function Product() {
         </div>
 
         {/* Похожее */}
-        <div style={{ marginTop: 56 }}>
-          <h2 className="section-title" style={{ marginBottom: 22 }}>Похожие товары</h2>
-          <div className="grid-products">{fallback.map(p => <ProductCard key={p.id} product={p} />)}</div>
-        </div>
+        {related.length > 0 && (
+          <div style={{ marginTop: 56 }}>
+            <h2 className="section-title" style={{ marginBottom: 22 }}>Похожие товары</h2>
+            <div className="grid-products">{related.map(p => <ProductCard key={p.id} product={p} />)}</div>
+          </div>
+        )}
       </div>
       <style>{`@media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }`}</style>
     </div>

@@ -33,7 +33,7 @@ export function Home() {
   const navigate = useNavigate()
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [dbReviews, setDbReviews] = useState<any[]>([])
-  const popular = PRODUCTS.slice(0, 10)
+  const [popular, setPopular] = useState<any[]>([])
 
   useEffect(() => {
     supabase.from('bazzar_reviews')
@@ -43,6 +43,15 @@ export function Home() {
       .limit(6)
       .then(({ data }) => {
         if (data && data.length > 0) setDbReviews(data)
+      })
+
+    supabase.from('bazzar_products')
+      .select('*')
+      .eq('active', true)
+      .order('sold', { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        if (data) setPopular(data)
       })
   }, [])
 
