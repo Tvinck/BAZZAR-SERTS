@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import { Send, Mail } from 'lucide-react'
 import { Link } from '../ui/nav'
 import { BazzarMark, BazzarWordmark, ShieldIcon } from '../ui/Icons'
+import { LegalModal, LegalType } from './LegalModal'
 
 export function Footer() {
+  const [legalModal, setLegalModal] = useState<LegalType>(null)
+
   const cols = [
     { 
       h: 'Навигация', 
@@ -25,9 +29,9 @@ export function Footer() {
     { 
       h: 'Правовая информация', 
       items: [
-        { label: 'Пользовательское соглашение', path: '/' },
-        { label: 'Политика конфиденциальности', path: '/' },
-        { label: 'Отказ от ответственности', path: '/' }
+        { label: 'Пользовательское соглашение', type: 'terms' as LegalType },
+        { label: 'Политика конфиденциальности', type: 'privacy' as LegalType },
+        { label: 'Отказ от ответственности', type: 'disclaimer' as LegalType }
       ] 
     }
   ]
@@ -55,9 +59,14 @@ export function Footer() {
           {cols.map(c => (
             <div key={c.h}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.92rem', marginBottom: 14 }}>{c.h}</div>
-              {c.items.map(i => (
-                <Link key={i.label} to={i.path} style={{ display: 'block', marginBottom: 10, fontSize: '0.86rem', color: 'var(--text-3)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}>{i.label}</Link>
+              {c.items.map((i: any) => (
+                i.path ? (
+                  <Link key={i.label} to={i.path} style={{ display: 'block', marginBottom: 10, fontSize: '0.86rem', color: 'var(--text-3)' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}>{i.label}</Link>
+                ) : (
+                  <button key={i.label} onClick={() => setLegalModal(i.type)} style={{ display: 'block', marginBottom: 10, fontSize: '0.86rem', color: 'var(--text-3)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}>{i.label}</button>
+                )
               ))}
             </div>
           ))}
@@ -69,6 +78,7 @@ export function Footer() {
           </span>
         </div>
       </div>
+      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </footer>
   )
 }
