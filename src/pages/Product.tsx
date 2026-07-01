@@ -297,7 +297,6 @@ export function Product() {
 
         </div>
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `@media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }` }} />
       <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </div>
   )
