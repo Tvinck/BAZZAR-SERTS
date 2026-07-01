@@ -47,7 +47,7 @@ export function Footer() {
               <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" aria-label="Telegram" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surface-2)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
                 <Send size={16} />
               </a>
-              <a href="mailto:support@bazzar.market" aria-label="Email" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surface-2)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
+              <a href="mailto:support@bazzar-serts.shop" aria-label="Email" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surface-2)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
                 <Mail size={16} />
               </a>
             </div>
