@@ -26,7 +26,7 @@ export function Cabinet() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewStatus, setReviewStatus] = useState('')
 
-  const copyRef = () => { navigator.clipboard?.writeText('bazzar-serts.vercel.app/r/artem'); setCopied(true); setTimeout(() => setCopied(false), 1800) }
+  const copyRef = () => { navigator.clipboard?.writeText('bazzar-serts.shop/r/artem'); setCopied(true); setTimeout(() => setCopied(false), 1800) }
 
   const handleLogout = logout
 
