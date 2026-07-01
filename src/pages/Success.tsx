@@ -23,7 +23,7 @@ export function Success() {
     const checkOrder = async () => {
       try {
         // Запрос к бэкенду Connect для верификации и сохранения заказа GGSel
-        const res = await fetch(`https://connect.tvinck.ru/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
+        const res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
         const data = await res.json();
 
         if (res.ok && data.success) {
@@ -33,7 +33,7 @@ export function Success() {
           const existingUdid = localStorage.getItem('apple_udid');
           if (existingUdid) {
             // Если есть, сразу привязываем заказ
-            const linkRes = await fetch('https://connect.tvinck.ru/api/shop/ggsel/link', {
+            const linkRes = await fetch('https://connect-4va6.vercel.app/api/shop/ggsel/link', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ uniquecode, udid: existingUdid })
