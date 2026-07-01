@@ -53,7 +53,7 @@ export function Product() {
     return <div style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-3)' }}>Загрузка...</div>
   }
 
-  const selectedDenom = denominations[denom]
+  const selectedDenom: any = denominations[denom]
   
   const unit = product.price > 0 
     ? (isCert ? selectedDenom.price : Math.round(product.price * (selectedDenom.mult || 1))) 
@@ -130,7 +130,7 @@ export function Product() {
                 style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: isContactValid ? 'var(--blue)' : 'var(--text-3)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${isContactValid ? 'var(--blue)' : 'var(--text-3)'}`, background: isContactValid ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {isContactValid && <CheckIcon size={14} color="#fff" />}
+                  {isContactValid && <span style={{ color: '#fff', display: 'flex' }}><CheckIcon size={14} /></span>}
                 </div>
                 Я указал верный контакт
               </button>
@@ -185,7 +185,6 @@ export function Product() {
                     </div>
                   </button>
                 ))}
-              </div>
               </div>
             </div>
 
