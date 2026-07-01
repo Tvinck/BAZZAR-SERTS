@@ -94,7 +94,13 @@ export function Cart() {
               <span style={{ color: 'var(--text-2)' }}>К оплате</span>
               <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.7rem' }}>{total.toLocaleString('ru-RU')} ₽</span>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', height: 52 }} onClick={() => setIsPaymentOpen(true)}>Оформить заказ</button>
+            <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+              <button className="btn btn-primary" style={{ flex: 1, height: 52 }} onClick={() => setIsPaymentOpen(true)}>Быстрая оплата (Демо)</button>
+              <button className="btn" style={{ flex: 1, height: 52, background: 'var(--surface-2)', border: '1px solid var(--hair)' }} onClick={() => {
+                // Имитация переадресации на GGSel и возврата обратно
+                window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
+              }}>Оплатить на GGSel</button>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 14, fontSize: '0.8rem', color: 'var(--text-3)' }}>
               <span style={{ color: 'var(--green)', display: 'flex' }}><ShieldIcon size={15} /></span> Безопасная оплата, мгновенная выдача
             </div>
