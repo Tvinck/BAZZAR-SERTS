@@ -52,9 +52,9 @@ export function Product() {
 
   const isCert = product?.category === 'certs'
   const denominations = isCert ? [
-    { label: 'Базовый (40 дней)', price: 400 }, 
-    { label: 'Продвинутый (180 дней)', price: 990 }, 
-    { label: 'VIP (330 дней)', price: 1490 }
+    { label: 'Базовый', price: 400, warranty: '40 дней' }, 
+    { label: 'Продвинутый', price: 990, warranty: '180 дней' }, 
+    { label: 'VIP', price: 1490, warranty: '330 дней' }
   ] : [
     { label: 'Базовый', mult: 1 }, { label: 'Стандарт', mult: 2.6 }, { label: 'Премиум', mult: 5.1 }, { label: 'Мега', mult: 9.4 }
   ]
@@ -102,7 +102,7 @@ export function Product() {
                 Гарантия активации и быстрая поддержка в чате 24/7. Подходит для аккаунтов любого региона.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginTop: 18 }}>
-                {[['Платформа', 'Все регионы'], ['Тип', 'Цифровой код'], ['Выдача', product.delivery], ['Гарантия', product.warranty || 'Без гарантии']].map(([k, v]) => (
+                {[['Платформа', 'Все регионы'], ['Тип', 'Цифровой код'], ['Выдача', product.delivery], ['Гарантия', isCert ? denominations[denom].warranty : (product.warranty || 'Без гарантии')]].map(([k, v]) => (
                   <div key={k} style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
                     <div style={{ fontSize: '0.74rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>{k}</div>
                     <div style={{ fontWeight: 700, fontSize: '0.92rem', marginTop: 3 }}>{v}</div>
@@ -224,7 +224,7 @@ export function Product() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 18 }}>
                 <Row icon={<span style={{ color: 'var(--green)', display: 'flex' }}><BoltIcon size={16} /></span>} text={<>Выдача: <b>{product.delivery}</b></>} />
-                <Row icon={<span style={{ color: 'var(--cyan)', display: 'flex' }}><ShieldIcon size={16} /></span>} text={product.warranty ? `Гарантия: ${product.warranty}` : "Без гарантии"} />
+                <Row icon={<span style={{ color: 'var(--cyan)', display: 'flex' }}><ShieldIcon size={16} /></span>} text={isCert ? `Гарантия: ${denominations[denom].warranty}` : (product.warranty ? `Гарантия: ${product.warranty}` : "Без гарантии")} />
                 <Row icon={<span style={{ color: 'var(--violet)', display: 'flex' }}><VerifyIcon size={16} /></span>} text="Официально от BAZZAR" />
               </div>
             </div>
