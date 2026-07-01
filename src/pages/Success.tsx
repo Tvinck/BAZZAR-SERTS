@@ -20,6 +20,7 @@ export function Success() {
       return;
     }
 
+    const checkOrder = async () => {
       try {
         // Запрос к бэкенду Connect для верификации и сохранения заказа GGSel
         const res = await fetch(`https://connect.tvinck.ru/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
