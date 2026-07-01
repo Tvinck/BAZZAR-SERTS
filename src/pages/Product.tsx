@@ -3,6 +3,13 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
 import { StarIcon, ShieldIcon, CheckIcon, VerifyIcon } from '../ui/Icons'
+import { LegalModal, LegalType } from '../components/LegalModal'
+
+const REVIEWS = [
+  { id: 1, name: 'Алексей С.', text: 'Сертификат пришел моментально! Установил TikTok, все работает отлично, спасибо.', rating: 5, date: 'Сегодня' },
+  { id: 2, name: 'Максим', text: 'Покупаю VIP уже второй раз. Первый отработал год без слетов. Очень доволен сервисом.', rating: 5, date: 'Вчера' },
+  { id: 3, name: 'Даня', text: 'Сначала сомневался, но поддержка все объяснила. Установил Scarlet и Сбербанк. Топ!', rating: 5, date: '2 дня назад' }
+]
 
 export function Product() {
   const { id } = useParams()
@@ -28,17 +35,19 @@ export function Product() {
   
   // Имитация скидок (старая цена +25-40%)
   const denominations = isCert ? [
-    { label: 'Базовый', price: 400, oldPrice: 690, discount: 42, warranty: '40 дней' }, 
-    { label: 'Продвинутый', price: 990, oldPrice: 1650, discount: 40, warranty: '180 дней' }, 
-    { label: 'VIP', price: 1490, oldPrice: 2490, discount: 40, warranty: '330 дней' }
+    { label: 'Базовый', price: 400, oldPrice: 690, discount: 42, warranty: '40 дней', image: '/cert_basic.png' }, 
+    { label: 'Продвинутый', price: 990, oldPrice: 1650, discount: 40, warranty: '180 дней', image: '/cert_advanced.png' }, 
+    { label: 'VIP', price: 1490, oldPrice: 2490, discount: 40, warranty: '330 дней', image: '/cert_vip.png' }
   ] : [
     { label: 'Базовый', mult: 1, discount: 15 }, { label: 'Стандарт', mult: 2.6, discount: 20 }, { label: 'Премиум', mult: 5.1, discount: 30 }, { label: 'Мега', mult: 9.4, discount: 40 }
   ]
 
   const [denom, setDenom] = useState(0)
   const [contact, setContact] = useState('')
+  const [isContactValid, setIsContactValid] = useState(false)
   const [promo, setPromo] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('ggsel')
+  const [legalModal, setLegalModal] = useState<LegalType>(null)
 
   if (loading || !product) {
     return <div style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-3)' }}>Загрузка...</div>
@@ -103,21 +112,28 @@ export function Product() {
             <div className="card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontWeight: 600 }}>Ваш Telegram для связи</span>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>Где взять?</span>
+                <button onClick={() => alert('Откройте Telegram -> Настройки -> Имя пользователя. Скопируйте это имя (начинается с @).')} style={{ background: 'none', border: 'none', color: 'var(--blue)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Где взять?</button>
               </div>
               <input 
                 value={contact} 
-                onChange={e => setContact(e.target.value)}
+                onChange={e => {
+                  setContact(e.target.value)
+                  if (e.target.value.length > 3 && isContactValid === false) setIsContactValid(true)
+                  if (e.target.value.length <= 3 && isContactValid === true) setIsContactValid(false)
+                }}
                 placeholder="@username" 
                 className="field" 
                 style={{ height: 52, fontSize: '1.1rem' }} 
               />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: contact.length > 3 ? 'var(--green)' : 'var(--text-3)', fontSize: '0.9rem' }}>
-                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${contact.length > 3 ? 'var(--green)' : 'var(--text-3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {contact.length > 3 && <CheckIcon size={14} />}
+              <button 
+                onClick={() => setIsContactValid(!isContactValid)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: isContactValid ? 'var(--blue)' : 'var(--text-3)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${isContactValid ? 'var(--blue)' : 'var(--text-3)'}`, background: isContactValid ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {isContactValid && <CheckIcon size={14} color="#fff" />}
                 </div>
                 Я указал верный контакт
-              </div>
+              </button>
             </div>
 
             {/* Denominations */}
@@ -151,7 +167,11 @@ export function Product() {
                         </div>
                       )}
                     </div>
-                    
+                    {d.image && (
+                      <div style={{ height: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '8px 0' }}>
+                        <img src={d.image} alt={d.label} style={{ maxHeight: '100%', objectFit: 'contain' }} />
+                      </div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto' }}>
                       <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽</span>
                       {d.discount && (
@@ -166,9 +186,29 @@ export function Product() {
                   </button>
                 ))}
               </div>
+              </div>
             </div>
-          </div>
 
+            {/* Reviews */}
+            <div className="card" style={{ padding: 24, marginTop: 16 }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Отзывы покупателей</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {REVIEWS.map(r => (
+                  <div key={r.id} style={{ borderBottom: r.id !== REVIEWS.length ? '1px solid var(--hair)' : 'none', paddingBottom: r.id !== REVIEWS.length ? 16 : 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--text)' }}>{r.name}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{r.date}</span>
+                    </div>
+                    <div style={{ display: 'flex', color: '#fbbf24', marginBottom: 8 }}>
+                      {[...Array(r.rating)].map((_, i) => <StarIcon key={i} size={14} />)}
+                    </div>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', margin: 0, lineHeight: 1.5 }}>{r.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
           {/* Right Column (Checkout) */}
           <div style={{ position: 'sticky', top: 24 }}>
             <div className="card" style={{ padding: 24 }}>
@@ -188,8 +228,7 @@ export function Product() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
                 {[
                   { id: 'ggsel', name: 'GGSel / Карта', badge: 'Выгодно' },
-                  { id: 'sbp', name: 'СБП', mock: true },
-                  { id: 'crypto', name: 'Криптовалюта', mock: true }
+                  { id: 'sbp', name: 'СБП', mock: true }
                 ].map(m => (
                   <button 
                     key={m.id}
@@ -232,13 +271,14 @@ export function Product() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleBuy}
                 className="btn btn-primary" 
-                style={{ width: '100%', height: 56, marginTop: 24, fontSize: '1.1rem', background: '#10b981', color: '#000', border: 'none' }}
+                style={{ width: '100%', height: 56, marginTop: 24, fontSize: '1.1rem' }}
               >
                 Купить за {unit.toLocaleString('ru-RU')} ₽
               </motion.button>
 
               <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 12 }}>
-                Нажимая «Купить», вы принимаете <br/><Link to="/" style={{ color: 'var(--green)' }}>Правила сервиса</Link> и <Link to="/" style={{ color: 'var(--green)' }}>Договор оферты</Link>
+                Нажимая «Купить», вы принимаете <br/>
+                <button onClick={() => setLegalModal('terms')} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Правила сервиса</button> и <button onClick={() => setLegalModal('disclaimer')} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Договор оферты</button>
               </div>
             </div>
 
@@ -258,6 +298,7 @@ export function Product() {
         </div>
       </div>
       <style>{`@media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }`}</style>
+      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </div>
   )
 }
