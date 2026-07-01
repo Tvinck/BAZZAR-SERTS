@@ -7,7 +7,6 @@ import { SupportChat } from './components/SupportChat'
 import { Home } from './pages/Home'
 import { Catalog } from './pages/Catalog'
 import { Product } from './pages/Product'
-import { Cart } from './pages/Cart'
 import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
 import { Success } from './pages/Success'
@@ -57,7 +56,7 @@ function NavBridge({ children }: { children: ReactNode }) {
   return <NavProvider navigate={(to) => navigate(to)}>{children}</NavProvider>
 }
 
-import { HomeIcon, ListIcon, CartIcon, UserIcon as TabUserIcon } from './ui/Icons'
+import { HomeIcon, ListIcon, UserIcon as TabUserIcon } from './ui/Icons'
 
 import { motion } from 'framer-motion'
 
@@ -68,7 +67,6 @@ function MobileNav() {
   const navItems = [
     { path: '/', label: 'Главная', icon: HomeIcon },
     { path: '/catalog', label: 'Каталог', icon: ListIcon },
-    { path: '/cart', label: 'Корзина', icon: CartIcon },
     { path: '/cabinet', label: 'Кабинет', icon: TabUserIcon },
   ]
   
@@ -105,7 +103,6 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/product/:id" element={<Product />} />
-            <Route path="/cart" element={<Cart />} />
             <Route path="/cabinet" element={<Cabinet />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/success" element={<Success />} />

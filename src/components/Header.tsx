@@ -1,11 +1,9 @@
 import { motion } from 'framer-motion'
 import { Link, useNav } from '../ui/nav'
-import { BazzarMark, BazzarWordmark, SearchIcon, CartIcon, WalletIcon, UserIcon, MenuIcon } from '../ui/Icons'
-import { useCart } from '../hooks/useCart'
+import { BazzarMark, BazzarWordmark, SearchIcon, UserIcon, MenuIcon } from '../ui/Icons'
 
 export function Header() {
   const navigate = useNav()
-  const { cartCount } = useCart()
 
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, padding: '12px 0', background: 'var(--bg)', borderBottom: '1px solid var(--hair)' }}>
@@ -28,12 +26,6 @@ export function Header() {
         <div className="mobile-hide" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/catalog')} className="btn btn-ghost" style={{ padding: '8px 16px', border: 'none' }}>
             Каталог
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/cart')} className="btn btn-ghost" aria-label="Корзина" style={{ padding: '8px 12px', position: 'relative' }}>
-            <CartIcon size={20} />
-            {cartCount > 0 && (
-              <span style={{ position: 'absolute', top: 4, right: 4, background: 'var(--accent)', borderRadius: '50%', width: 8, height: 8 }} />
-            )}
           </motion.button>
           <button className="btn btn-primary" onClick={() => navigate('/cabinet')}>
             Кабинет <UserIcon size={16} />

@@ -1,251 +1,263 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { motion, AnimatePresence } from 'framer-motion'
-import { StarIcon, BoltIcon, ShieldIcon, ChevronRightIcon, MinusIcon, PlusIcon, HeartIcon, VerifyIcon } from '../ui/Icons'
-import { ProductCard } from '../components/ProductCard'
-import { useCart } from '../hooks/useCart'
+import { motion } from 'framer-motion'
+import { StarIcon, ShieldIcon, CheckIcon, VerifyIcon } from '../ui/Icons'
 
 export function Product() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { addItem } = useCart()
   const [product, setProduct] = useState<any>(null)
-  const [related, setRelated] = useState<any[]>([])
-  const [reviews, setReviews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     window.scrollTo(0, 0);
     setLoading(true);
     
-    // Fetch current product
     supabase.from('bazzar_products').select('*').eq('id', id).single().then(({ data }) => {
       if (data) {
         setProduct(data)
-        // Fetch related products
-        supabase.from('bazzar_products')
-          .select('*')
-          .eq('category', data.category)
-          .neq('id', data.id)
-          .eq('active', true)
-          .limit(5)
-          .then(({ data: relData }) => {
-            setRelated(relData || [])
-          })
-          
-        // Fetch reviews
-        supabase.from('bazzar_reviews')
-          .select('*')
-          .eq('product_id', data.id)
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .then(({ data: revData }) => {
-            setReviews(revData || [])
-            setLoading(false)
-          })
       } else {
-        navigate('/catalog') // not found
+        navigate('/catalog')
       }
+      setLoading(false)
     })
   }, [id, navigate])
 
   const isCert = product?.category === 'certs'
-  const denominations = isCert ? [
-    { label: 'Базовый', price: 400, warranty: '40 дней' }, 
-    { label: 'Продвинутый', price: 990, warranty: '180 дней' }, 
-    { label: 'VIP', price: 1490, warranty: '330 дней' }
-  ] : [
-    { label: 'Базовый', mult: 1 }, { label: 'Стандарт', mult: 2.6 }, { label: 'Премиум', mult: 5.1 }, { label: 'Мега', mult: 9.4 }
-  ]
-  const [denom, setDenom] = useState(0)
-  const [qty, setQty] = useState(1)
-  const [isFavorite, setIsFavorite] = useState(false)
   
+  // Имитация скидок (старая цена +25-40%)
+  const denominations = isCert ? [
+    { label: 'Базовый', price: 400, oldPrice: 690, discount: 42, warranty: '40 дней' }, 
+    { label: 'Продвинутый', price: 990, oldPrice: 1650, discount: 40, warranty: '180 дней' }, 
+    { label: 'VIP', price: 1490, oldPrice: 2490, discount: 40, warranty: '330 дней' }
+  ] : [
+    { label: 'Базовый', mult: 1, discount: 15 }, { label: 'Стандарт', mult: 2.6, discount: 20 }, { label: 'Премиум', mult: 5.1, discount: 30 }, { label: 'Мега', mult: 9.4, discount: 40 }
+  ]
+
+  const [denom, setDenom] = useState(0)
+  const [contact, setContact] = useState('')
+  const [promo, setPromo] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('ggsel')
+
   if (loading || !product) {
     return <div style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-3)' }}>Загрузка...</div>
   }
 
+  const selectedDenom = denominations[denom]
+  
   const unit = product.price > 0 
-    ? (isCert ? denominations[denom].price : Math.round(product.price * (denominations[denom].mult || 1))) 
+    ? (isCert ? selectedDenom.price : Math.round(product.price * (selectedDenom.mult || 1))) 
     : 0
-  const total = unit * qty
+
+  const oldUnit = isCert && selectedDenom.oldPrice 
+    ? selectedDenom.oldPrice 
+    : Math.round(unit * (1 + (selectedDenom.discount || 0)/100))
+
+  const handleBuy = () => {
+    if (paymentMethod === 'ggsel') {
+      window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
+    } else {
+      alert('В демо-режиме доступна только оплата GGSel')
+    }
+  }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div className="container" style={{ position: 'relative', zIndex: 2, padding: '28px 0 60px' }}>
-        {/* Хлебные крошки */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 22 }}>
-          <Link to="/" style={{ color: 'var(--text-3)' }}>Главная</Link><ChevronRightIcon size={14} />
-          <Link to="/catalog" style={{ color: 'var(--text-3)' }}>Каталог</Link><ChevronRightIcon size={14} />
-          <span style={{ color: 'var(--text-2)' }}>{product.title}</span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 28, alignItems: 'start' }} className="prod-grid">
-          {/* Левая часть */}
+    <div style={{ paddingBottom: 80 }}>
+      {/* Hero Header */}
+      <div style={{ position: 'relative', height: 260, background: 'linear-gradient(135deg, rgba(20,20,20,1) 0%, rgba(40,40,40,1) 100%)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.4, backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}></div>
+        <div className="container" style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', gap: 24 }}>
+          <div style={{ width: 120, height: 120, borderRadius: 24, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+            {product.image ? (
+              <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <span style={{ fontSize: '4rem' }}>{product.emoji || '🛍️'}</span>
+            )}
+          </div>
           <div>
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
-              className="card" style={{ position: 'relative', height: 320, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              {product.image ? (
-                <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} />
-              ) : (
-                <span style={{ fontSize: '7rem', zIndex: 1 }}>{product.emoji || '🛍️'}</span>
-              )}
-              {product.badge && <span className="badge badge-hot" style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>🔥 Хит продаж</span>}
-            </motion.div>
+            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textShadow: '0 4px 20px rgba(0,0,0,0.5)', fontFamily: 'var(--font-display)' }}>{product.title}</h1>
+            <div style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{product.subtitle}</div>
+          </div>
+        </div>
+      </div>
 
-            {/* Описание */}
-            <div className="card" style={{ padding: 24, marginTop: 18 }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: 12 }}>Описание</h3>
-              <p style={{ color: 'var(--text-2)', lineHeight: 1.7 }}>
-                {product.title} — {product.subtitle.toLowerCase()}. Товар выдаётся автоматически сразу после оплаты: вы получите код или данные в личном кабинете и на email.
-                Гарантия активации и быстрая поддержка в чате 24/7. Подходит для аккаунтов любого региона.
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 12, marginTop: 18 }}>
-                {[['Платформа', 'Все регионы'], ['Тип', 'Цифровой код'], ['Выдача', product.delivery], ['Гарантия', isCert ? denominations[denom].warranty : (product.warranty || 'Без гарантии')]].map(([k, v]) => (
-                  <div key={k} style={{ background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>{k}</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.92rem', marginTop: 3 }}>{v}</div>
-                  </div>
+      <div className="container" style={{ marginTop: -20, position: 'relative', zIndex: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 24 }} className="prod-grid">
+          
+          {/* Left Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Stats */}
+            <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '16px 0', textAlign: 'center', background: 'var(--surface-2)' }}>
+              <div style={{ borderRight: '1px solid var(--hair)' }}>
+                <div style={{ color: '#fbbf24', fontSize: '1.3rem', fontWeight: 800 }}>{product.rating > 0 ? product.rating.toFixed(1) : '5.0'}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Рейтинг</div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text)', fontSize: '1.3rem', fontWeight: 800 }}>{product.sold > 0 ? `${(product.sold / 1000).toFixed(1)}K` : 'Новинка'}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Продаж</div>
+              </div>
+            </div>
+
+            {/* Input Data */}
+            <div className="card" style={{ padding: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontWeight: 600 }}>Ваш Telegram для связи</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>Где взять?</span>
+              </div>
+              <input 
+                value={contact} 
+                onChange={e => setContact(e.target.value)}
+                placeholder="@username" 
+                className="field" 
+                style={{ height: 52, fontSize: '1.1rem' }} 
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: contact.length > 3 ? 'var(--green)' : 'var(--text-3)', fontSize: '0.9rem' }}>
+                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${contact.length > 3 ? 'var(--green)' : 'var(--text-3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {contact.length > 3 && <CheckIcon size={14} />}
+                </div>
+                Я указал верный контакт
+              </div>
+            </div>
+
+            {/* Denominations */}
+            <div className="card" style={{ padding: '24px 24px 12px' }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Выберите номинал</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 12 }}>
+                {denominations.map((d, i) => (
+                  <button key={i} onClick={() => setDenom(i)} style={{ 
+                    textAlign: 'left', 
+                    background: denom === i ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg)',
+                    border: `2px solid ${denom === i ? 'var(--blue)' : 'var(--hair)'}`,
+                    borderRadius: 16, 
+                    padding: 16, 
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12
+                  }}>
+                    {denom === i && (
+                      <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: 'var(--blue)', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Выбрано
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>{d.label}</div>
+                      {isCert && (
+                        <div style={{ background: '#fbbf24', color: '#000', fontSize: '0.75rem', fontWeight: 800, padding: '2px 6px', borderRadius: 6 }}>
+                          + {d.warranty}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto' }}>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽</span>
+                      {d.discount && (
+                        <span style={{ background: 'var(--red)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '2px 6px', borderRadius: 4, marginBottom: 3 }}>
+                          -{d.discount}%
+                        </span>
+                      )}
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', textDecoration: 'line-through', marginBottom: 3 }}>
+                        {isCert ? d.oldPrice : Math.round((product.price * (d.mult || 1)) * (1 + d.discount/100))} ₽
+                      </span>
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
-
-            {/* Отзывы */}
-            <div className="card" style={{ padding: 24, marginTop: 18 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h3 style={{ fontSize: '1.2rem' }}>Отзывы</h3>
-                <span className="chip"><span style={{ color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)', display: 'inline-flex' }}><StarIcon size={13} /></span> {product.rating > 0 ? product.rating.toFixed(1) : 'Новый'} {product.sold > 0 ? `· ${Math.round(product.sold / 18)} оценок` : ''}</span>
-              </div>
-              
-              {reviews.length > 0 ? reviews.map((r, i) => (
-                <div key={i} style={{ display: 'flex', gap: 12, padding: '14px 0', borderTop: '1px solid var(--hair)' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--bg)', flexShrink: 0 }}>{(r.author || 'A')[0]}</div>
-                  <div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{r.author || 'Пользователь'}</span><span style={{ display: 'flex', gap: 1, color: '#fbbf24' }}>{Array.from({ length: r.rating || 5 }).map((_, i) => <StarIcon key={i} size={11} />)}</span></div>
-                    <p style={{ color: 'var(--text-2)', fontSize: '0.88rem', marginTop: 4 }}>{r.text}</p>
-                  </div>
-                </div>
-              )) : (
-                <div style={{ color: 'var(--text-3)', fontSize: '0.9rem', padding: '10px 0' }}>Пока нет отзывов. Станьте первым!</div>
-              )}
-            </div>
           </div>
 
-          {/* Правая часть — покупка (sticky) */}
-          <div style={{ position: 'sticky', top: 90 }}>
+          {/* Right Column (Checkout) */}
+          <div style={{ position: 'sticky', top: 24 }}>
             <div className="card" style={{ padding: 24 }}>
-              <h1 style={{ fontSize: '1.5rem' }}>{product.title}</h1>
-              <div style={{ color: 'var(--text-3)', marginTop: 2 }}>{product.subtitle}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '12px 0 20px', fontSize: '0.84rem', color: 'var(--text-2)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: product.rating > 0 ? '#fbbf24' : 'var(--text-3)' }}><StarIcon size={14} /> <span style={{ color: 'var(--text-2)' }}>{product.rating > 0 ? product.rating.toFixed(1) : 'Новый'}</span></span>
-                <span style={{ color: 'var(--text-3)' }}>{product.sold > 0 ? `${product.sold.toLocaleString('ru-RU')} продаж` : 'Пока нет продаж'}</span>
+              {/* Product Info Mini */}
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid var(--hair)' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--bg)', overflow: 'hidden', flexShrink: 0 }}>
+                  {product.image ? <img src={product.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ fontSize: '1.5rem', textAlign: 'center', lineHeight: '48px' }}>{product.emoji}</div>}
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{product.title}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedDenom.label}</div>
+                </div>
               </div>
 
-              {/* Номиналы */}
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 9 }}>Выберите номинал</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 18 }}>
-                {denominations.map((d, i) => (
-                  <button key={d.label} onClick={() => setDenom(i)}
-                    style={{ padding: '11px 12px', borderRadius: 'var(--radius-sm)', textAlign: 'left', cursor: 'pointer', border: `1px solid ${denom === i ? 'var(--text)' : 'var(--hair)'}`, background: denom === i ? 'var(--text)' : 'var(--surface-2)', color: denom === i ? 'var(--bg)' : 'var(--text)' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.86rem' }}>{d.label}</div>
-                    <div style={{ fontSize: '0.8rem', color: denom === i ? 'var(--bg)' : 'var(--text-3)' }}>{(isCert ? d.price : Math.round(product.price * (d.mult || 1))).toLocaleString('ru-RU')} ₽</div>
+              {/* Payment Methods */}
+              <h3 style={{ fontSize: '1rem', marginBottom: 12 }}>Способ оплаты</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 24 }}>
+                {[
+                  { id: 'ggsel', name: 'GGSel / Карта', badge: 'Выгодно' },
+                  { id: 'sbp', name: 'СБП', mock: true },
+                  { id: 'crypto', name: 'Криптовалюта', mock: true }
+                ].map(m => (
+                  <button 
+                    key={m.id}
+                    onClick={() => setPaymentMethod(m.id)}
+                    style={{ 
+                      padding: '12px', borderRadius: 12, border: `1px solid ${paymentMethod === m.id ? 'var(--blue)' : 'var(--hair)'}`, 
+                      background: paymentMethod === m.id ? 'rgba(59, 130, 246, 0.05)' : 'var(--surface-2)',
+                      color: paymentMethod === m.id ? 'var(--blue)' : 'var(--text-2)',
+                      fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', textAlign: 'center', position: 'relative'
+                    }}
+                  >
+                    {m.name}
+                    {m.badge && <span style={{ position: 'absolute', top: -8, right: -4, background: 'var(--red)', color: '#fff', fontSize: '0.65rem', padding: '2px 6px', borderRadius: 8 }}>{m.badge}</span>}
                   </button>
                 ))}
               </div>
 
-              {/* Количество */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                <span style={{ fontSize: '0.86rem', color: 'var(--text-2)' }}>Количество</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface-2)', borderRadius: 11, padding: 5 }}>
-                  <button onClick={() => setQty(q => Math.max(1, q - 1))} style={qtyBtn}><MinusIcon size={16} /></button>
-                  <span style={{ fontWeight: 700, minWidth: 18, textAlign: 'center' }}>{qty}</span>
-                  <button onClick={() => setQty(q => q + 1)} style={qtyBtn}><PlusIcon size={16} /></button>
-                </div>
+              {/* Promo */}
+              <div style={{ position: 'relative', marginBottom: 24 }}>
+                <input value={promo} onChange={e => setPromo(e.target.value)} placeholder="Промокод" className="field" style={{ paddingRight: 50, height: 46 }} />
+                <button className="btn btn-ghost" style={{ position: 'absolute', right: 4, top: 4, height: 38, padding: '0 12px' }}>OK</button>
               </div>
 
-              <AnimatePresence>
-                {qty > 1 && isCert && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
-                    animate={{ opacity: 1, height: 'auto', marginTop: -6, marginBottom: 18 }}
-                    exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
-                    style={{ overflow: 'hidden' }}
-                  >
-                    <div style={{ 
-                      padding: '12px 14px', 
-                      background: 'rgba(239, 68, 68, 0.1)', 
-                      border: '1px solid rgba(239, 68, 68, 0.2)', 
-                      borderRadius: 12,
-                      color: 'var(--red)',
-                      fontSize: '0.82rem',
-                      lineHeight: 1.5,
-                      display: 'flex',
-                      gap: 10,
-                      alignItems: 'flex-start'
-                    }}>
-                      <span style={{ marginTop: 2, fontSize: '1rem' }}>⚠️</span>
-                      <div>
-                        <b>Не рекомендуем</b> покупать несколько сертификатов через один аккаунт. Лучше оформлять покупку напрямую с того устройства, на которое вы хотите приобрести сертификат.
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Итого */}
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '16px 0', borderTop: '1px solid var(--hair)', borderBottom: '1px solid var(--hair)', marginBottom: 18 }}>
-                <span style={{ color: 'var(--text-2)' }}>Итого</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem' }}>{total.toLocaleString('ru-RU')} ₽</span>
+              {/* Summary */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '0.9rem', color: 'var(--text-2)' }}>
+                <span>Цена</span><span style={{ textDecoration: 'line-through', color: 'var(--text-3)' }}>{oldUnit.toLocaleString('ru-RU')} ₽</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '0.9rem', color: 'var(--text-2)' }}>
+                <span>Выгода</span><span style={{ color: 'var(--red)', fontWeight: 600 }}>-{selectedDenom.discount}%</span>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '16px 0 0', marginTop: 8, borderTop: '1px solid var(--hair)' }}>
+                <span style={{ color: 'var(--text)' }}>Итого</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem' }}>{unit.toLocaleString('ru-RU')} ₽</span>
               </div>
 
-              <div style={{ display: 'flex', gap: 10 }}>
-                <motion.button 
-                  whileHover={{ y: -1 }} 
-                  whileTap={{ scale: 0.97 }} 
-                  className="btn btn-primary" 
-                  style={{ flex: 1, height: 52 }} 
-                  onClick={() => {
-                    addItem({ 
-                      ...product, 
-                      title: isCert ? `${product.title} - ${denominations[denom].label}` : product.title,
-                      price: unit, 
-                      qty 
-                    });
-                    navigate('/cart');
-                  }}
-                >
-                  Купить сейчас
-                </motion.button>
-                <button onClick={() => setIsFavorite(!isFavorite)} className="btn btn-ghost" style={{ width: 52, height: 52, padding: 0, color: isFavorite ? 'var(--red)' : 'var(--text)' }} aria-label="В избранное">
-                  <HeartIcon size={19} />
-                </button>
-              </div>
+              {/* Buy Button */}
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleBuy}
+                className="btn btn-primary" 
+                style={{ width: '100%', height: 56, marginTop: 24, fontSize: '1.1rem', background: '#10b981', color: '#000', border: 'none' }}
+              >
+                Купить за {unit.toLocaleString('ru-RU')} ₽
+              </motion.button>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 18 }}>
-                <Row icon={<span style={{ color: 'var(--green)', display: 'flex' }}><BoltIcon size={16} /></span>} text={<>Выдача: <b>{product.delivery}</b></>} />
-                <Row icon={<span style={{ color: 'var(--cyan)', display: 'flex' }}><ShieldIcon size={16} /></span>} text={isCert ? `Гарантия: ${denominations[denom].warranty}` : (product.warranty ? `Гарантия: ${product.warranty}` : "Без гарантии")} />
-                <Row icon={<span style={{ color: 'var(--violet)', display: 'flex' }}><VerifyIcon size={16} /></span>} text="Официально от BAZZAR" />
+              <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 12 }}>
+                Нажимая «Купить», вы принимаете <br/><Link to="/" style={{ color: 'var(--green)' }}>Правила сервиса</Link> и <Link to="/" style={{ color: 'var(--green)' }}>Договор оферты</Link>
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
+              <div className="card" style={{ padding: '16px 12px', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface-2)' }}>
+                <ShieldIcon size={20} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>Безопасная<br/>покупка</span>
+              </div>
+              <div className="card" style={{ padding: '16px 12px', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface-2)' }}>
+                <VerifyIcon size={20} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>Мгновенная<br/>выдача</span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Похожее */}
-        {related.length > 0 && (
-          <div style={{ marginTop: 56 }}>
-            <h2 className="section-title" style={{ marginBottom: 22 }}>Похожие товары</h2>
-            <div className="grid-products">{related.map(p => <ProductCard key={p.id} product={p} />)}</div>
-          </div>
-        )}
+        </div>
       </div>
       <style>{`@media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }`}</style>
     </div>
   )
-}
-
-const qtyBtn: React.CSSProperties = { width: 32, height: 32, borderRadius: 8, border: 'none', background: 'var(--elevated)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }
-
-function Row({ icon, text }: { icon: React.ReactNode; text: React.ReactNode }) {
-  return <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: '0.86rem', color: 'var(--text-2)' }}>{icon}{text}</div>
 }

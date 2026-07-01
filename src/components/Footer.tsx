@@ -13,7 +13,6 @@ export function Footer() {
       items: [
         { label: 'Главная', path: '/' },
         { label: 'Каталог', path: '/catalog' },
-        { label: 'Корзина', path: '/cart' },
         { label: 'Кабинет', path: '/cabinet' }
       ] 
     },
