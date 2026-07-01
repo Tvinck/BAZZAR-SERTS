@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     }
 
     // Get host dynamically to redirect back to the app itself
-    const host = req.headers.host || 'bazzar-serts.vercel.app';
+    const host = req.headers.host || 'bazzar-serts.shop';
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const marketUrl = `${protocol}://${host}`;
     
