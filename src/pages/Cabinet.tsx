@@ -210,7 +210,7 @@ export function Cabinet() {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div className="container cabinet-container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
+      <div className="container cabinet-container" style={{ position: 'relative', zIndex: 2, paddingTop: 32, paddingBottom: 60 }}>
         
         {/* Sidebar */}
         <aside className="cabinet-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
@@ -296,12 +296,12 @@ export function Cabinet() {
                   </div>
 
                   {/* Метрики */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
+                  <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
                     <MetricCard icon={<PackageIcon size={15} />} label="Количество заказов:" value={String(userOrders.length)} accent="#eab308" bgColor="rgba(234, 179, 8, 0.05)" />
                     <MetricCard icon={<StarIcon size={15} />} label="Ваш уровень:" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="#10b981" bgColor="rgba(16, 185, 129, 0.05)" />
                   </div>
                   
-                  <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
+                  <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <button onClick={() => setIsReviewOpen(true)} className="btn btn-primary" style={{ display: 'inline-flex' }}>Оставить отзыв</button>
                     <Link to="/catalog" className="btn btn-ghost" style={{ display: 'inline-flex' }}>В каталог</Link>
                   </div>
@@ -389,7 +389,7 @@ export function Cabinet() {
         }
         @media (max-width: 880px) {
           .cabinet-container {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 20px;
           }
           .sidebar-nav-desktop { display: none !important; }
@@ -413,11 +413,11 @@ function MetricCard({ icon, label, value, accent, bgColor }: { icon: React.React
       boxShadow: `inset 0 0 20px ${accent}05`
     }}>
       <div style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 700 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: accent, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', lineHeight: 1 }}>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: accent, color: '#000' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: accent, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(1.3rem, 5vw, 1.8rem)', lineHeight: 1 }}>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: accent, color: '#000', flexShrink: 0 }}>
           {icon}
         </span>
-        {value}
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</span>
       </div>
     </div>
   )
