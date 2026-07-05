@@ -12,6 +12,7 @@ export interface OrderItem {
   grad: string;
   ipaUrl: string | null;
   productId?: string;
+  approval_comment?: string;
 }
 
 /**
@@ -74,13 +75,30 @@ export function useProfile() {
           console.error("Profile error:", error);
         }
 
-        if (userData && isMounted) {
-          setProfile(userData);
+        // Fetch apple_certificates for manual registrations
+        const { data: certsData } = await supabase
+          .from('apple_certificates')
+          .select('*')
+          .eq('udid', currentUdid);
+
+        if (isMounted) {
+          if (userData) {
+            setProfile(userData);
+          } else if (certsData && certsData.length > 0) {
+            // User exists in apple_certificates but not in bazzar_users
+            setProfile({
+              udid: currentUdid,
+              status: certsData[0].crm_status === 'approved' ? 'bought' : 'pending',
+              plan: certsData[0].plan_id,
+              last_purchase: certsData[0].created_at
+            } as UserProfile);
+          }
           
-          // Generate an order object from user profile
-          if (userData.plan) {
+          let allOrders: OrderItem[] = [];
+
+          // 1. Generate an order object from user profile if exists and no certsData duplicates it
+          if (userData && userData.plan) {
             let ipaUrl = null;
-            // Fetch product to see if it has an ipa_url
             const { data: prod } = await supabase
               .from('bazzar_products')
               .select('id, ipa_url')
@@ -89,7 +107,7 @@ export function useProfile() {
               
             if (prod?.ipa_url) ipaUrl = prod.ipa_url;
             
-            const order: OrderItem = {
+            allOrders.push({
               id: 'BZ-' + userData.udid.substring(userData.udid.length - 5).toUpperCase(),
               title: userData.plan,
               date: userData.last_purchase ? new Date(userData.last_purchase).toLocaleDateString('ru-RU') : 'Недавно',
@@ -99,10 +117,30 @@ export function useProfile() {
               grad: 'linear-gradient(135deg,#10b981,#1db954)',
               ipaUrl,
               productId: prod?.id
-            };
-            
-            setOrders([order]);
+            });
           }
+
+          // 2. Add apple_certificates
+          if (certsData && certsData.length > 0) {
+            for (const cert of certsData) {
+              // Avoid duplicates if plan matches what we already added
+              if (allOrders.find(o => o.title === cert.plan_id)) continue;
+
+              allOrders.push({
+                id: 'CERT-' + cert.id.substring(0, 5).toUpperCase(),
+                title: cert.plan_id || 'Сертификат Apple',
+                date: new Date(cert.created_at).toLocaleDateString('ru-RU'),
+                sum: cert.sale_price || 0,
+                status: cert.crm_status === 'approved' ? 'done' : 'progress',
+                emoji: '📃',
+                grad: 'linear-gradient(135deg,#10b981,#1db954)',
+                ipaUrl: null,
+                approval_comment: cert.approval_comment
+              });
+            }
+          }
+
+          setOrders(allOrders);
         }
       } catch (err) {
         console.error(err);

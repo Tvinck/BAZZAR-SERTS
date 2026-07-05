@@ -164,6 +164,14 @@ export function Cabinet() {
                         <>
                           <h4 style={{ color: 'var(--text)', marginBottom: 8, fontSize: '1rem' }}>Инструкция по установке сертификата</h4>
                           <p style={{ marginBottom: 8 }}>Ваш сертификат разработчика Apple успешно выпущен и готов к использованию.</p>
+                          
+                          {o.approval_comment && (
+                            <div style={{ background: 'rgba(139, 92, 246, 0.1)', borderLeft: '3px solid var(--violet)', padding: '12px 16px', borderRadius: '4px 8px 8px 4px', marginBottom: 12, color: 'var(--text)' }}>
+                              <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--violet)', marginBottom: 4, textTransform: 'uppercase' }}>Комментарий администратора:</strong>
+                              {o.approval_comment}
+                            </div>
+                          )}
+
                           <ul style={{ paddingLeft: 20, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <li>Шаг 1: Скачайте и установите приложение ESing, Scarlet или Gbox.</li>
                             <li>Шаг 2: Перейдите в раздел "Управление сертификатами" внутри приложения.</li>
