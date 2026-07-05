@@ -213,7 +213,7 @@ export function Cabinet() {
       <div className="container cabinet-container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
         
         {/* Sidebar */}
-        <aside className="cabinet-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <aside className="cabinet-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
           {/* User Brief */}
           <div className="glass" style={{ padding: '16px', borderRadius: '16px', border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', gap: 12 }}>
              <img src="/img/mascot_raccoon.png" style={{ width: 44, height: 44, borderRadius: 'var(--radius)', objectFit: 'cover' }} alt="User" />
@@ -257,7 +257,7 @@ export function Cabinet() {
         </aside>
 
         {/* Main Content */}
-        <main className="cabinet-content">
+        <main className="cabinet-content" style={{ minWidth: 0 }}>
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
               
@@ -278,7 +278,7 @@ export function Cabinet() {
                     <div style={{ marginBottom: 14 }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 6 }}>Ваш Apple UDID</div>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <input className="field" defaultValue={udid || ''} readOnly style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.95rem' }} />
+                        <input className="field" defaultValue={udid || ''} readOnly style={{ flex: 1, minWidth: 0, fontFamily: 'monospace', fontSize: '0.95rem' }} />
                         <button className="btn btn-ghost" onClick={handleLogout} style={{ color: 'var(--red)' }}><LogOutIcon size={18} /></button>
                       </div>
                     </div>
