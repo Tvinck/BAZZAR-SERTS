@@ -54,7 +54,7 @@ export function Home() {
       {/* ── HERO ── */}
       <section style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(40px, 8vw, 100px) 0' }}>
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'center' }}>
+          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }}>
             
             {/* Текст и поиск */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
@@ -90,20 +90,7 @@ export function Home() {
               </motion.div>
             </div>
 
-            {/* Изображение маскота (Кибер-Енот) */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.85 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="float-mascot"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
-            >
-              <img 
-                src="/img/mascot_raccoon.png" 
-                style={{ width: 'clamp(200px, 25vw, 320px)', height: 'auto', zIndex: 1 }} 
-                alt="Cyber Raccoon Mascot" 
-              />
-            </motion.div>
+
 
           </div>
         </div>

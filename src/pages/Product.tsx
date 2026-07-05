@@ -35,9 +35,9 @@ export function Product() {
   
   // Имитация скидок (старая цена +25-40%)
   const denominations = isCert ? [
-    { label: 'Базовый', price: 400, oldPrice: 690, discount: 42, warranty: '40 дней', image: '/cert_basic.png' }, 
-    { label: 'Продвинутый', price: 990, oldPrice: 1650, discount: 40, warranty: '180 дней', image: '/cert_advanced.png' }, 
-    { label: 'VIP', price: 1490, oldPrice: 2490, discount: 40, warranty: '330 дней', image: '/cert_vip.png' }
+    { label: 'Базовый', price: 400, oldPrice: 690, discount: 42, warranty: '40 дней', image: '/img/cat_certs.png' }, 
+    { label: 'Продвинутый', price: 990, oldPrice: 1650, discount: 40, warranty: '180 дней', image: '/img/cat_certs.png' }, 
+    { label: 'VIP', price: 1490, oldPrice: 2490, discount: 40, warranty: '330 дней', image: '/img/cat_certs.png' }
   ] : [
     { label: 'Базовый', mult: 1, discount: 15 }, { label: 'Стандарт', mult: 2.6, discount: 20 }, { label: 'Премиум', mult: 5.1, discount: 30 }, { label: 'Мега', mult: 9.4, discount: 40 }
   ]
@@ -79,7 +79,7 @@ export function Product() {
         <div className="container" style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', gap: 24 }}>
           <div style={{ width: 120, height: 120, borderRadius: 24, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
             {product.image ? (
-              <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
             ) : (
               <span style={{ fontSize: '4rem' }}>{product.emoji || '🛍️'}</span>
             )}
@@ -111,29 +111,16 @@ export function Product() {
             {/* Input Data */}
             <div className="card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontWeight: 600 }}>Ваш Telegram для связи</span>
+                <span style={{ fontWeight: 600 }}>Ваш Telegram для связи <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(необязательно)</span></span>
                 <button onClick={() => alert('Откройте Telegram -> Настройки -> Имя пользователя. Скопируйте это имя (начинается с @).')} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Где взять?</button>
               </div>
               <input 
                 value={contact} 
-                onChange={e => {
-                  setContact(e.target.value)
-                  if (e.target.value.length > 3 && isContactValid === false) setIsContactValid(true)
-                  if (e.target.value.length <= 3 && isContactValid === true) setIsContactValid(false)
-                }}
+                onChange={e => setContact(e.target.value)}
                 placeholder="@username" 
                 className="field" 
                 style={{ height: 52, fontSize: '1.1rem' }} 
               />
-              <button 
-                onClick={() => setIsContactValid(!isContactValid)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: isContactValid ? 'var(--text)' : 'var(--text-3)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${isContactValid ? 'var(--text)' : 'var(--text-3)'}`, background: isContactValid ? 'var(--text)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {isContactValid && <span style={{ color: '#000', display: 'flex' }}><CheckIcon size={14} /></span>}
-                </div>
-                Я указал верный контакт
-              </button>
             </div>
 
             {/* Denominations */}
@@ -169,7 +156,7 @@ export function Product() {
                     </div>
                     {d.image && (
                       <div style={{ height: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '8px 0' }}>
-                        <img src={d.image} alt={d.label} style={{ maxHeight: '100%', objectFit: 'contain' }} />
+                        <img src={d.image} alt={d.label} style={{ maxHeight: '100%', objectFit: 'contain' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
                       </div>
                     )}
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto' }}>
@@ -214,7 +201,7 @@ export function Product() {
               {/* Product Info Mini */}
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid var(--hair)' }}>
                 <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--bg)', overflow: 'hidden', flexShrink: 0 }}>
-                  {product.image ? <img src={product.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ fontSize: '1.5rem', textAlign: 'center', lineHeight: '48px' }}>{product.emoji}</div>}
+                  {product.image ? <img src={product.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} /> : <div style={{ fontSize: '1.5rem', textAlign: 'center', lineHeight: '48px' }}>{product.emoji}</div>}
                 </div>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{product.title}</div>

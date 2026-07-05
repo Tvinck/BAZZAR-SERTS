@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
       >
         <div style={{ position: 'relative', height: 160, background: 'var(--bg)', borderBottom: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
           {product.image ? (
-            <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} />
+            <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} onError={(e) => { e.currentTarget.src = product.category === 'certs' ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
           ) : (
             <span style={{ fontSize: '3rem', zIndex: 1 }}>{product.emoji || '🛍️'}</span>
           )}
