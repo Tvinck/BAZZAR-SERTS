@@ -235,9 +235,9 @@ export function Cabinet() {
                   </div>
 
                   {/* Метрики */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14 }}>
-                    <MetricCard icon={<PackageIcon size={19} />} label="Заказов" value={String(userOrders.length)} accent="var(--violet)" />
-                    <MetricCard icon={<StarIcon size={19} />} label="Уровень" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="var(--amber)" />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
+                    <MetricCard icon={<PackageIcon size={15} />} label="Количество заказов:" value={String(userOrders.length)} accent="#eab308" bgColor="rgba(234, 179, 8, 0.05)" />
+                    <MetricCard icon={<StarIcon size={15} />} label="Ваш уровень:" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="#10b981" bgColor="rgba(16, 185, 129, 0.05)" />
                   </div>
                   
                   <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
@@ -339,13 +339,25 @@ export function Cabinet() {
   )
 }
 
-function MetricCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: string }) {
+function MetricCard({ icon, label, value, accent, bgColor }: { icon: React.ReactNode; label: string; value: string; accent: string; bgColor: string }) {
   return (
-    <div className="glass" style={{ padding: '20px 24px', border: '1px solid var(--hair-strong)', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius)' }}>
-      <div style={{ position: 'absolute', top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`, filter: 'blur(10px)' }} />
-      <div style={{ width: 42, height: 42, borderRadius: 'var(--radius)', background: 'var(--bg-2)', border: `1px solid ${accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, marginBottom: 14, boxShadow: `0 0 15px ${accent}15` }}>{icon}</div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 850, fontSize: '1.75rem', color: '#fff' }}>{value}</div>
-      <div style={{ fontSize: '0.82rem', color: 'var(--text-2)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+    <div style={{ 
+      background: bgColor, 
+      borderRadius: '12px', 
+      padding: '20px 24px', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: 12,
+      border: `1px solid ${accent}15`,
+      boxShadow: `inset 0 0 20px ${accent}05`
+    }}>
+      <div style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 700 }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: accent, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', lineHeight: 1 }}>
+        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: accent, color: '#000' }}>
+          {icon}
+        </span>
+        {value}
+      </div>
     </div>
   )
 }
