@@ -64,7 +64,7 @@ export function Home() {
               </motion.div>
 
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-                style={{ fontSize: 'clamp(2.2rem,5vw,4.2rem)', margin: '0 0 20px', lineHeight: 1.02, textTransform: 'uppercase' }}>
+                style={{ fontSize: 'clamp(1.8rem,7vw,4.2rem)', margin: '0 0 20px', lineHeight: 1.05, textTransform: 'uppercase', wordBreak: 'break-word' }}>
                 Свобода установки<br /><span style={{ background: 'linear-gradient(90deg, var(--violet), var(--cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>приложений</span> на iOS
               </motion.h1>
 
@@ -196,7 +196,7 @@ export function Home() {
         </div>
       </section>
 
-      <style>{`@media (max-width:880px){ .cashback-grid{ grid-template-columns:1fr !important } }`}</style>
+      <style>{`@media (max-width:880px){ .cashback-grid{ grid-template-columns:minmax(0, 1fr) !important } }`}</style>
     </div>
   )
 }

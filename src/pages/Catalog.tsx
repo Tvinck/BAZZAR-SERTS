@@ -86,7 +86,7 @@ export function Catalog() {
           </div>
         </div>
       </div>
-      <style>{`@media (max-width:880px){ .cat-grid{ grid-template-columns:1fr !important } }`}</style>
+      <style>{`@media (max-width:880px){ .cat-grid{ grid-template-columns:minmax(0, 1fr) !important } }`}</style>
     </div>
   )
 }

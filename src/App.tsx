@@ -93,20 +93,22 @@ export default function App() {
     <BrowserRouter>
       <ScrollTop />
       <NavBridge>
-        <Header />
-        <main style={{ minHeight: '70vh' }}>
-          <RouteTracker />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalog" element={<Catalog />} />
-            <Route path="/product/:id" element={<Product />} />
-            <Route path="/cabinet" element={<Cabinet />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
+        <div style={{ width: '100%', overflowX: 'hidden', position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Header />
+          <main style={{ flex: 1 }}>
+            <RouteTracker />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/catalog" element={<Catalog />} />
+              <Route path="/product/:id" element={<Product />} />
+              <Route path="/cabinet" element={<Cabinet />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/success" element={<Success />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
         <MobileNav />
         <SupportChat />
       </NavBridge>
