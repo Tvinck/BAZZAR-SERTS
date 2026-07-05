@@ -11,13 +11,15 @@ const statusMap: Record<string, { text: string; color: string; bg: string }> = {
 }
 
 const TABS = [
-  { id: 'orders', label: 'Заказы', icon: <PackageIcon size={17} /> },
-  { id: 'profile', label: 'Профиль', icon: <UserIcon size={17} /> }
+  { id: 'profile', label: 'Мой профиль', icon: <UserIcon size={18} /> },
+  { id: 'purchases', label: 'Мои покупки', icon: <PackageIcon size={18} /> },
+  { id: 'certs', label: 'Мои сертификаты', icon: <VerifyIcon size={18} /> },
+  { id: 'apps', label: 'Мои приложения', icon: <StarIcon size={18} /> }
 ]
 
 export function Cabinet() {
   const { udid, profile, orders: userOrders, loading, logout } = useProfile()
-  const [tab, setTab] = useState('orders')
+  const [tab, setTab] = useState('profile')
   const [copied, setCopied] = useState(false)
   
   // Review Modal State
@@ -100,105 +102,176 @@ export function Cabinet() {
     )
   }
 
+  // Derive filtered orders
+  const certOrders = userOrders.filter(o => o.title.toLowerCase().includes('сертификат') || o.title.toLowerCase().includes('vip') || o.emoji === '📃' || o.emoji === '👑' || o.emoji === '⚡')
+  const appOrders = userOrders.filter(o => !certOrders.includes(o))
+
+  // Render Order List or Empty State
+  const renderOrders = (orders: typeof userOrders, emptyText = 'Здесь пока пусто и грустно') => {
+    if (orders.length === 0) {
+      return (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ fontSize: '3rem', color: 'var(--text-3)', marginBottom: 16, fontFamily: 'var(--font-display)', fontWeight: 800 }}>:'(</div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: 8 }}>{emptyText}</h3>
+          <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', maxWidth: 300 }}>
+            Сделай покупку в BAZZAR, чтобы тут что-то появилось. <Link to="/catalog" style={{ color: 'var(--green)', textDecoration: 'underline' }}>В магазин →</Link>
+          </p>
+        </div>
+      )
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {orders.map(o => {
+          const s = statusMap[o.status] || statusMap.progress
+          return (
+            <div key={o.id} className="card" style={{ padding: 16, display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.7rem', flexShrink: 0 }}>{o.emoji}</div>
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>{o.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-3)', marginTop: 3 }}>
+                  <span>{o.id}</span><span>·</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={13} /> {o.date}</span>
+                </div>
+              </div>
+              <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
+              {o.ipaUrl ? (
+                <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Скачать IPA</a>
+              ) : (
+                <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div style={{ position: 'relative' }}>
-      <div className="container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
-        {/* Профиль-хедер */}
-        <div className="glass" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 20, border: '1px solid var(--hair-strong)' }}>
-          <img src="/img/mascot_raccoon.png" style={{ width: 72, height: 72, borderRadius: 'var(--radius-lg)', border: '1px solid var(--hair-strong)', boxShadow: '0 0 15px rgba(255, 255, 255, 0.08)', objectFit: 'cover' }} alt="User" />
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <h1 style={{ fontSize: '1.5rem', textTransform: 'none' }}>Пользователь</h1>
-              <span className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text)', border: 'none' }}><VerifyIcon size={13} /> {profile?.status === 'bought' ? 'PRO' : 'Client'}</span>
-            </div>
-            <div style={{ color: 'var(--text-3)', fontSize: '0.86rem', marginTop: 2 }}>UDID: {udid.substring(0, 10)}...{udid.substring(udid.length - 4)}</div>
+      <div className="container cabinet-container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
+        
+        {/* Sidebar */}
+        <aside className="cabinet-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* User Brief */}
+          <div className="glass" style={{ padding: '16px', borderRadius: '16px', border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', gap: 12 }}>
+             <img src="/img/mascot_raccoon.png" style={{ width: 44, height: 44, borderRadius: 'var(--radius)', objectFit: 'cover' }} alt="User" />
+             <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Пользователь</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-3)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{udid.substring(0, 8)}...</div>
+             </div>
           </div>
-          <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: '11px 16px' }}><LogOutIcon size={16} /> Выйти</button>
-        </div>
 
-        {/* Инфо-облако от Маскота */}
-        <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)', marginBottom: 22 }}>
-          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 'auto', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
-            <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>
-              Привет! Я слежу за статусом твоих сертификатов Apple Developer. Если заказ «В обработке» — мы уже отправляем запрос в Apple, это обычно занимает от 1 до 5 часов. Всё под контролем! 🤝
-            </p>
-          </div>
-        </div>
-
-        {/* Метрики */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 22 }}>
-          <MetricCard icon={<PackageIcon size={19} />} label="Заказов" value={String(userOrders.length)} accent="var(--violet)" />
-          <MetricCard icon={<StarIcon size={19} />} label="Уровень" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="var(--amber)" />
-        </div>
-
-        {/* Табы */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20, overflowX: 'auto' }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} className="btn" style={{ padding: '11px 18px', whiteSpace: 'nowrap', ...(tab === t.id ? { background: 'var(--text)', color: 'var(--bg)' } : { background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--hair)' }) }}>
-              {t.icon} {t.label}
+          {/* Nav */}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }} className="sidebar-nav-desktop">
+            {TABS.map(t => (
+              <button 
+                key={t.id} 
+                onClick={() => setTab(t.id)} 
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: '12px',
+                  background: tab === t.id ? 'var(--surface-2)' : 'transparent',
+                  color: tab === t.id ? 'var(--text)' : 'var(--text-2)',
+                  border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: tab === t.id ? 600 : 500,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span style={{ color: tab === t.id ? 'var(--violet)' : 'var(--text-3)' }}>{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+            <div style={{ height: 1, background: 'var(--hair)', margin: '12px 0' }} />
+            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: '12px', background: 'transparent', color: 'var(--red)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: 500 }}>
+              <LogOutIcon size={18} /> Выйти
             </button>
-          ))}
-        </div>
+          </nav>
+          
+          <nav style={{ display: 'none', gap: 8, overflowX: 'auto', paddingBottom: 8 }} className="sidebar-nav-mobile">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} className="btn" style={{ padding: '11px 18px', whiteSpace: 'nowrap', ...(tab === t.id ? { background: 'var(--text)', color: 'var(--bg)' } : { background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--hair)' }) }}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
-            {tab === 'orders' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {userOrders.length > 0 ? userOrders.map(o => {
-                  const s = statusMap[o.status] || statusMap.progress
-                  return (
-                    <div key={o.id} className="card" style={{ padding: 16, display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.7rem', flexShrink: 0 }}>{o.emoji}</div>
-                      <div style={{ flex: 1, minWidth: 160 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>{o.title}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-3)', marginTop: 3 }}>
-                          <span>{o.id}</span><span>·</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={13} /> {o.date}</span>
-                        </div>
+        {/* Main Content */}
+        <main className="cabinet-content">
+          <AnimatePresence mode="wait">
+            <motion.div key={tab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
+              
+              {tab === 'profile' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {/* Профиль-хедер */}
+                  <div className="glass" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', border: '1px solid var(--hair-strong)' }}>
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                        <h1 style={{ fontSize: '1.5rem', textTransform: 'none' }}>Настройки профиля</h1>
+                        <span className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text)', border: 'none' }}><VerifyIcon size={13} /> {profile?.status === 'bought' ? 'PRO' : 'Client'}</span>
                       </div>
-                      <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
-                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
-                      {o.ipaUrl ? (
-                        <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Скачать IPA</a>
-                      ) : (
-                        <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
-                      )}
+                      <div style={{ color: 'var(--text-3)', fontSize: '0.86rem', marginTop: 2 }}>{profile?.plan || 'Без подписки'}</div>
                     </div>
-                  )
-                }) : (
-                  <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>
-                    У вас пока нет заказов. <br/><br/>
-                    <Link to="/catalog" className="btn btn-primary">Перейти в каталог</Link>
                   </div>
-                )}
-              </div>
-            )}
 
-            {/* Вкладка Баланс удалена */}
+                  <div className="card" style={{ padding: 24 }}>
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 6 }}>Ваш Apple UDID</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input className="field" defaultValue={udid || ''} readOnly style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.95rem' }} />
+                        <button className="btn btn-ghost" onClick={handleLogout} style={{ color: 'var(--red)' }}><LogOutIcon size={18} /></button>
+                      </div>
+                    </div>
+                  </div>
 
-            {tab === 'profile' && (
-              <div className="card" style={{ padding: 24, maxWidth: 560 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
-                  <span style={{ color: 'var(--violet)', display: 'flex' }}><SettingsIcon size={19} /></span>
-                  <h3 style={{ fontSize: '1.15rem' }}>Настройки профиля</h3>
+                  {/* Инфо-облако от Маскота */}
+                  <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)' }}>
+                    <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 'auto', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
+                      <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>
+                        Привет! Я слежу за статусом твоих заказов. Если заказ «В обработке» — мы уже отправляем запрос в Apple, это обычно занимает от 1 до 5 часов. Всё под контролем! 🤝
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Метрики */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14 }}>
+                    <MetricCard icon={<PackageIcon size={19} />} label="Заказов" value={String(userOrders.length)} accent="var(--violet)" />
+                    <MetricCard icon={<StarIcon size={19} />} label="Уровень" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="var(--amber)" />
+                  </div>
+                  
+                  <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
+                    <button onClick={() => setIsReviewOpen(true)} className="btn btn-primary" style={{ display: 'inline-flex' }}>Оставить отзыв</button>
+                    <Link to="/catalog" className="btn btn-ghost" style={{ display: 'inline-flex' }}>В каталог</Link>
+                  </div>
                 </div>
-                {[['UDID', udid]].map(([k, v]) => (
-                  <div key={k} style={{ marginBottom: 14 }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 6 }}>{k}</div>
-                    <input className="field" defaultValue={v || ''} readOnly={k === 'UDID'} />
-                  </div>
-                ))}
-                <button className="btn btn-primary" style={{ marginTop: 6 }}>Сохранить изменения</button>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              )}
 
-        <div style={{ marginTop: 28, textAlign: 'center', display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <Link to="/catalog" className="btn btn-ghost" style={{ display: 'inline-flex' }}>Перейти в каталог</Link>
-          <button onClick={() => setIsReviewOpen(true)} className="btn btn-primary" style={{ display: 'inline-flex' }}>Оставить отзыв</button>
-        </div>
+              {tab === 'purchases' && (
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Активные заказы и покупки</h2>
+                  {renderOrders(userOrders, 'Здесь пока пусто и грустно')}
+                </div>
+              )}
+
+              {tab === 'certs' && (
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои сертификаты</h2>
+                  {renderOrders(certOrders, 'У вас пока нет сертификатов')}
+                </div>
+              )}
+
+              {tab === 'apps' && (
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои приложения</h2>
+                  {renderOrders(appOrders, 'Вы ещё не покупали приложения')}
+                </div>
+              )}
+
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
       </div>
       
       {/* Review Modal */}
@@ -246,7 +319,22 @@ export function Cabinet() {
         )}
       </AnimatePresence>
 
-      <style>{`@media (max-width:880px){ .bal-grid{ grid-template-columns:1fr !important } }`}</style>
+      <style>{`
+        .cabinet-container {
+          display: grid;
+          grid-template-columns: 240px 1fr;
+          gap: 40px;
+          align-items: start;
+        }
+        @media (max-width: 880px) {
+          .cabinet-container {
+            grid-template-columns: 1fr;
+            gap: 20px;
+          }
+          .sidebar-nav-desktop { display: none !important; }
+          .sidebar-nav-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   )
 }
