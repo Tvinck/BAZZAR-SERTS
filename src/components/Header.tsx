@@ -12,8 +12,7 @@ export function Header() {
         {/* Лого */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <img src="/img/mascot_raccoon.png" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--hair-strong)', boxShadow: '0 0 10px rgba(255, 255, 255, 0.1)' }} alt="Mascot" />
-            <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--bg)', borderRadius: '50%', padding: 2, display: 'flex' }}><BazzarMark size={14} /></span>
+            <img src="/img/logo_metallic_1.png" onError={(e) => { e.currentTarget.src = '/img/logo_metallic.png'; }} style={{ height: 34, width: 'auto' }} alt="Bazzar Logo" />
           </div>
           <div className="mobile-hide"><BazzarWordmark size="1.2rem" /></div>
         </Link>

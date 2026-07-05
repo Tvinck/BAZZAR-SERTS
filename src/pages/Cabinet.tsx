@@ -73,9 +73,11 @@ export function Cabinet() {
     return (
       <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="card" style={{ padding: 40, position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 400 }}>
-          <div style={{ width: 64, height: 64, borderRadius: 'var(--radius-lg)', background: 'var(--text)', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bg)' }}>
-            <UserIcon size={28} />
-          </div>
+          <img 
+            src="/img/login_graphic.png" 
+            style={{ width: 140, height: 140, objectFit: 'contain', margin: '0 auto 16px', display: 'block', borderRadius: 16 }} 
+            alt="Secure Keycard" 
+          />
           <h2 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Вход в личный кабинет</h2>
           
           <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--hair)', padding: '16px', borderRadius: '14px', marginBottom: 24 }}>
@@ -116,7 +118,7 @@ export function Cabinet() {
 
         {/* Инфо-облако от Маскота */}
         <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)', marginBottom: 22 }}>
-          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid var(--hair-strong)', display: 'block', flexShrink: 0, boxShadow: '0 0 10px rgba(255, 255, 255, 0.05)' }} alt="Mascot Helper" />
+          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 'auto', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
             <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>

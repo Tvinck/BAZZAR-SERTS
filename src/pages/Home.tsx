@@ -98,20 +98,11 @@ export function Home() {
               className="float-mascot"
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
             >
-              {/* Светящийся неоновый фон за маскотом */}
-              <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%)', filter: 'blur(30px)', zIndex: 0 }} />
-              
               <img 
                 src="/img/mascot_raccoon.png" 
-                style={{ width: 'clamp(200px, 25vw, 320px)', height: 'auto', borderRadius: '24px', zIndex: 1, boxShadow: '0 20px 50px rgba(255, 255, 255, 0.04), inset 0 0 20px rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} 
+                style={{ width: 'clamp(200px, 25vw, 320px)', height: 'auto', zIndex: 1 }} 
                 alt="Cyber Raccoon Mascot" 
               />
-              
-              {/* Диалоговое облако от маскота */}
-              <div className="glass" style={{ marginTop: 20, padding: '10px 16px', borderRadius: 12, border: '1px solid var(--hair-strong)', zIndex: 1, position: 'relative', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)' }}>САППОРТ:</span>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-2)', marginLeft: 6 }}>Подпишу любой IPA за 5 минут! 🚀</span>
-              </div>
             </motion.div>
 
           </div>

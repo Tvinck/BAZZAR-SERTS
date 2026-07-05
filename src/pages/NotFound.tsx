@@ -7,9 +7,6 @@ export function NotFound() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '75vh', textAlign: 'center', padding: '40px 16px', position: 'relative', overflow: 'hidden' }}>
       
-      {/* Glow effect behind mascot */}
-      <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%)', filter: 'blur(40px)', zIndex: 0, top: '20%' }} />
-
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -19,13 +16,10 @@ export function NotFound() {
         {/* Animated Mascot Wrapper */}
         <div className="float-mascot" style={{ position: 'relative', marginBottom: 28 }}>
           <img 
-            src="/img/mascot_raccoon.png" 
-            style={{ width: 180, height: 180, borderRadius: '24px', border: '1px solid var(--hair-strong)', boxShadow: '0 0 30px rgba(255, 255, 255, 0.1)' }} 
+            src="/img/mascot_raccoon_404.png" 
+            style={{ width: 180, height: 'auto' }} 
             alt="Confused Mascot" 
           />
-          <span style={{ position: 'absolute', top: -15, right: -15, background: 'var(--red)', color: '#000', fontSize: '0.85rem', fontWeight: 900, padding: '4px 10px', borderRadius: 100, border: '2px solid var(--bg)', boxShadow: '0 5px 15px rgba(248, 113, 113, 0.4)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>
-            Ошибка
-          </span>
         </div>
 
         {/* 404 Code with Neon Glow */}
