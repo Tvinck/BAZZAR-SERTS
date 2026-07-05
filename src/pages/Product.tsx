@@ -112,7 +112,7 @@ export function Product() {
             <div className="card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontWeight: 600 }}>Ваш Telegram для связи</span>
-                <button onClick={() => alert('Откройте Telegram -> Настройки -> Имя пользователя. Скопируйте это имя (начинается с @).')} style={{ background: 'none', border: 'none', color: 'var(--blue)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Где взять?</button>
+                <button onClick={() => alert('Откройте Telegram -> Настройки -> Имя пользователя. Скопируйте это имя (начинается с @).')} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Где взять?</button>
               </div>
               <input 
                 value={contact} 
@@ -127,10 +127,10 @@ export function Product() {
               />
               <button 
                 onClick={() => setIsContactValid(!isContactValid)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: isContactValid ? 'var(--blue)' : 'var(--text-3)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, color: isContactValid ? 'var(--text)' : 'var(--text-3)', fontSize: '0.9rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
-                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${isContactValid ? 'var(--blue)' : 'var(--text-3)'}`, background: isContactValid ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {isContactValid && <span style={{ color: '#fff', display: 'flex' }}><CheckIcon size={14} /></span>}
+                <div style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${isContactValid ? 'var(--text)' : 'var(--text-3)'}`, background: isContactValid ? 'var(--text)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {isContactValid && <span style={{ color: '#000', display: 'flex' }}><CheckIcon size={14} /></span>}
                 </div>
                 Я указал верный контакт
               </button>
@@ -143,8 +143,8 @@ export function Product() {
                 {denominations.map((d, i) => (
                   <button key={i} onClick={() => setDenom(i)} style={{ 
                     textAlign: 'left', 
-                    background: denom === i ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg)',
-                    border: `2px solid ${denom === i ? 'var(--blue)' : 'var(--hair)'}`,
+                    background: denom === i ? 'rgba(255, 255, 255, 0.06)' : 'var(--bg)',
+                    border: `2px solid ${denom === i ? '#ffffff' : 'var(--hair)'}`,
                     borderRadius: 16, 
                     padding: 16, 
                     cursor: 'pointer',
@@ -155,7 +155,7 @@ export function Product() {
                     gap: 12
                   }}>
                     {denom === i && (
-                      <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: 'var(--blue)', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: '#ffffff', color: '#000000', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Выбрано
                       </div>
                     )}
@@ -233,9 +233,9 @@ export function Product() {
                     key={m.id}
                     onClick={() => setPaymentMethod(m.id)}
                     style={{ 
-                      padding: '12px', borderRadius: 12, border: `1px solid ${paymentMethod === m.id ? 'var(--blue)' : 'var(--hair)'}`, 
-                      background: paymentMethod === m.id ? 'rgba(59, 130, 246, 0.05)' : 'var(--surface-2)',
-                      color: paymentMethod === m.id ? 'var(--blue)' : 'var(--text-2)',
+                      padding: '12px', borderRadius: 12, border: `1px solid ${paymentMethod === m.id ? 'var(--text)' : 'var(--hair)'}`, 
+                      background: paymentMethod === m.id ? 'rgba(255, 255, 255, 0.06)' : 'var(--surface-2)',
+                      color: paymentMethod === m.id ? 'var(--text)' : 'var(--text-2)',
                       fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', textAlign: 'center', position: 'relative'
                     }}
                   >
@@ -277,7 +277,7 @@ export function Product() {
 
               <div style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 12 }}>
                 Нажимая «Купить», вы принимаете <br/>
-                <button onClick={() => setLegalModal('terms')} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Правила сервиса</button> и <button onClick={() => setLegalModal('disclaimer')} style={{ background: 'none', border: 'none', color: 'var(--blue)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Договор оферты</button>
+                <button onClick={() => setLegalModal('terms')} style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Правила сервиса</button> и <button onClick={() => setLegalModal('disclaimer')} style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>Договор оферты</button>
               </div>
             </div>
 

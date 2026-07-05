@@ -8,7 +8,7 @@ export function NotFound() {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '75vh', textAlign: 'center', padding: '40px 16px', position: 'relative', overflow: 'hidden' }}>
       
       {/* Glow effect behind mascot */}
-      <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(192, 132, 252, 0.12) 0%, transparent 70%)', filter: 'blur(40px)', zIndex: 0, top: '20%' }} />
+      <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%)', filter: 'blur(40px)', zIndex: 0, top: '20%' }} />
 
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
@@ -20,8 +20,8 @@ export function NotFound() {
         <div className="float-mascot" style={{ position: 'relative', marginBottom: 28 }}>
           <img 
             src="/img/mascot_raccoon.png" 
-            style={{ width: 180, height: 180, borderRadius: '24px', border: '2px solid var(--violet)', boxShadow: '0 0 30px rgba(192, 132, 252, 0.4)' }} 
-            alt="Confused Raccoon" 
+            style={{ width: 180, height: 180, borderRadius: '24px', border: '1px solid var(--hair-strong)', boxShadow: '0 0 30px rgba(255, 255, 255, 0.1)' }} 
+            alt="Confused Mascot" 
           />
           <span style={{ position: 'absolute', top: -15, right: -15, background: 'var(--red)', color: '#000', fontSize: '0.85rem', fontWeight: 900, padding: '4px 10px', borderRadius: 100, border: '2px solid var(--bg)', boxShadow: '0 5px 15px rgba(248, 113, 113, 0.4)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>
             Ошибка
@@ -29,7 +29,7 @@ export function NotFound() {
         </div>
 
         {/* 404 Code with Neon Glow */}
-        <h1 style={{ fontSize: 'clamp(4.5rem, 10vw, 6.5rem)', fontWeight: 900, margin: 0, lineHeight: 0.9, letterSpacing: '-0.05em', color: '#fff', textShadow: '0 0 10px rgba(192, 132, 252, 0.5), 0 0 30px rgba(192, 132, 252, 0.3)' }}>
+        <h1 style={{ fontSize: 'clamp(4.5rem, 10vw, 6.5rem)', fontWeight: 900, margin: 0, lineHeight: 0.9, letterSpacing: '-0.05em', color: '#fff', textShadow: '0 0 15px rgba(255, 255, 255, 0.2)' }}>
           404
         </h1>
 
@@ -43,11 +43,11 @@ export function NotFound() {
 
         {/* Action Button */}
         <motion.button 
-          whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(192, 132, 252, 0.4)' }}
+          whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(255, 255, 255, 0.15)' }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/')} 
           className="btn btn-primary"
-          style={{ padding: '14px 28px', border: '1px solid var(--violet)', background: 'linear-gradient(135deg, #fff 0%, #e4e4e7 100%)', boxShadow: '0 10px 30px rgba(192, 132, 252, 0.2)' }}
+          style={{ padding: '14px 28px', border: '1px solid #fff', background: 'linear-gradient(135deg, #fff 0%, #e4e4e7 100%)', color: '#000', boxShadow: '0 10px 30px rgba(255, 255, 255, 0.1)' }}
         >
           На главную
         </motion.button>

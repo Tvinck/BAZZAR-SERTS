@@ -103,7 +103,7 @@ export function Cabinet() {
       <div className="container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
         {/* Профиль-хедер */}
         <div className="glass" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 20, border: '1px solid var(--hair-strong)' }}>
-          <img src="/img/mascot_raccoon.png" style={{ width: 72, height: 72, borderRadius: 'var(--radius-lg)', border: '2px solid var(--violet)', boxShadow: '0 0 15px rgba(192, 132, 252, 0.3)', objectFit: 'cover' }} alt="User" />
+          <img src="/img/mascot_raccoon.png" style={{ width: 72, height: 72, borderRadius: 'var(--radius-lg)', border: '1px solid var(--hair-strong)', boxShadow: '0 0 15px rgba(255, 255, 255, 0.08)', objectFit: 'cover' }} alt="User" />
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
               <h1 style={{ fontSize: '1.5rem', textTransform: 'none' }}>Пользователь</h1>
@@ -116,9 +116,9 @@ export function Cabinet() {
 
         {/* Инфо-облако от Маскота */}
         <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)', marginBottom: 22 }}>
-          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid var(--violet)', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
+          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid var(--hair-strong)', display: 'block', flexShrink: 0, boxShadow: '0 0 10px rgba(255, 255, 255, 0.05)' }} alt="Mascot Helper" />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--violet)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
             <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>
               Привет! Я слежу за статусом твоих сертификатов Apple Developer. Если заказ «В обработке» — мы уже отправляем запрос в Apple, это обычно занимает от 1 до 5 часов. Всё под контролем! 🤝
             </p>
