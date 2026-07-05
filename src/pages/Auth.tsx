@@ -79,14 +79,15 @@ export function Auth() {
   }, [searchParams, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-[50vh] text-center">
-      <div className="space-y-4">
-        <div className="w-10 h-10 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto" />
-        <h1 className="text-xl font-bold text-white tracking-tight">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', textAlign: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+        <div style={{ width: 40, height: 40, border: '4px solid var(--hair-strong)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
           Авторизация...
         </h1>
-        <p className="text-zinc-400">Проверяем профиль устройства</p>
+        <p style={{ color: 'var(--text-2)' }}>Проверяем профиль устройства</p>
       </div>
+      <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

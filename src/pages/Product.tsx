@@ -74,25 +74,27 @@ export function Product() {
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* Hero Header */}
-      <div style={{ position: 'relative', height: 260, background: 'linear-gradient(135deg, rgba(20,20,20,1) 0%, rgba(40,40,40,1) 100%)', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', minHeight: 260, padding: '40px 0', background: 'linear-gradient(135deg, rgba(20,20,20,1) 0%, rgba(40,40,40,1) 100%)', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.4, backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }}></div>
-        <div className="container" style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ width: 120, height: 120, borderRadius: 24, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-            {product.image ? (
-              <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
-            ) : (
-              <span style={{ fontSize: '4rem' }}>{product.emoji || '🛍️'}</span>
-            )}
-          </div>
-          <div>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textShadow: '0 4px 20px rgba(0,0,0,0.5)', fontFamily: 'var(--font-display)' }}>{product.title}</h1>
-            <div style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{product.subtitle}</div>
+        <div className="container" style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="flex-col-mobile text-center-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, width: '100%' }}>
+            <div style={{ width: 120, height: 120, borderRadius: 24, background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', flexShrink: 0 }}>
+              {product.image ? (
+                <img src={product.image} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
+              ) : (
+                <span style={{ fontSize: '4rem' }}>{product.emoji || '🛍️'}</span>
+              )}
+            </div>
+            <div>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: 800, textShadow: '0 4px 20px rgba(0,0,0,0.5)', fontFamily: 'var(--font-display)' }}>{product.title}</h1>
+              <div style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{product.subtitle}</div>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container" style={{ marginTop: -20, position: 'relative', zIndex: 10 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 24 }} className="prod-grid">
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 24 }}>
           
           {/* Left Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -110,7 +112,7 @@ export function Product() {
 
             {/* Input Data */}
             <div className="card" style={{ padding: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <span style={{ fontWeight: 600 }}>Ваш Telegram для связи <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(необязательно)</span></span>
                 <button onClick={() => alert('Откройте Telegram -> Настройки -> Имя пользователя. Скопируйте это имя (начинается с @).')} style={{ background: 'none', border: 'none', color: 'var(--text-2)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Где взять?</button>
               </div>
@@ -126,7 +128,7 @@ export function Product() {
             {/* Denominations */}
             <div className="card" style={{ padding: '24px 24px 12px' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Выберите номинал</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
                 {denominations.map((d, i) => (
                   <button key={i} onClick={() => setDenom(i)} style={{ 
                     textAlign: 'left', 
@@ -146,8 +148,8 @@ export function Product() {
                         Выбрано
                       </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>{d.label}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 4 }}>
+                      <div style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>{d.label}</div>
                       {isCert && (
                         <div style={{ background: '#fbbf24', color: '#000', fontSize: '0.75rem', fontWeight: 800, padding: '2px 6px', borderRadius: 6 }}>
                           + {d.warranty}
@@ -155,11 +157,11 @@ export function Product() {
                       )}
                     </div>
                     {d.image && (
-                      <div style={{ height: 100, display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '8px 0' }}>
+                      <div style={{ height: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '4px 0' }}>
                         <img src={d.image} alt={d.label} style={{ maxHeight: '100%', objectFit: 'contain' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
                       </div>
                     )}
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽</span>
                       {d.discount && (
                         <span style={{ background: 'var(--red)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '2px 6px', borderRadius: 4, marginBottom: 3 }}>
@@ -196,7 +198,7 @@ export function Product() {
 
           </div>
           {/* Right Column (Checkout) */}
-          <div style={{ position: 'sticky', top: 24 }}>
+          <div style={{ position: 'sticky', top: 24, alignSelf: 'start', width: '100%' }}>
             <div className="card" style={{ padding: 24 }}>
               {/* Product Info Mini */}
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid var(--hair)' }}>
@@ -204,7 +206,7 @@ export function Product() {
                   {product.image ? <img src={product.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} /> : <div style={{ fontSize: '1.5rem', textAlign: 'center', lineHeight: '48px' }}>{product.emoji}</div>}
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{product.title}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{product.title}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedDenom.label}</div>
                 </div>
               </div>

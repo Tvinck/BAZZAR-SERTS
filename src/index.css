@@ -219,6 +219,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 /* ── Адаптивность (Mobile) ───────────────────────────────────────────────────────────── */
 .mobile-hide { }
 .desktop-hide { display: none !important; }
+.scroll-x-mobile { }
 
 @media (max-width: 880px) {
   .mobile-hide { display: none !important; }
@@ -229,7 +230,21 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
   /* Утилиты для перестроения */
   .stack-mobile { flex-direction: column !important; align-items: stretch !important; }
   .grid-mobile-1 { grid-template-columns: 1fr !important; }
+  .flex-col-mobile { flex-direction: column !important; }
+  .text-center-mobile { text-align: center !important; justify-content: center !important; }
+  .text-center-mobile * { text-align: center !important; }
   
+  /* Horizontal scroll container for tags/badges */
+  .scroll-x-mobile {
+    display: flex !important;
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll-x-mobile::-webkit-scrollbar { display: none; }
+
   /* Место для Bottom Bar на смартфонах */
   body { padding-bottom: 96px; }
   

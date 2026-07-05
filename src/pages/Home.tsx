@@ -57,14 +57,14 @@ export function Home() {
           <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, alignItems: 'center' }}>
             
             {/* Текст и поиск */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+            <div className="text-center-mobile" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
                 className="chip" style={{ marginBottom: 20, background: 'transparent' }}>
                 <SparkIcon size={16} /> Новый способ установки
               </motion.div>
 
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-                style={{ fontSize: 'clamp(2.2rem,5vw,4.2rem)', margin: '0 0 20px', lineHeight: 1.02, textAlign: 'left', textTransform: 'uppercase' }}>
+                style={{ fontSize: 'clamp(2.2rem,5vw,4.2rem)', margin: '0 0 20px', lineHeight: 1.02, textTransform: 'uppercase' }}>
                 Свобода установки<br /><span style={{ background: 'linear-gradient(90deg, var(--violet), var(--cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>приложений</span> на iOS
               </motion.h1>
 
@@ -76,16 +76,16 @@ export function Home() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
                 style={{ position: 'relative', width: '100%', maxWidth: 540 }}>
                 <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={20} /></span>
-                <input className="field" placeholder="Поиск приложений, сертификатов, утилит…" style={{ height: 60, paddingLeft: 50, paddingRight: 140, fontSize: '1rem', background: 'var(--bg-2)' }}
+                <input className="field" placeholder="Поиск (приложения, утилиты…)" style={{ height: 60, paddingLeft: 50, paddingRight: 110, fontSize: '1rem', background: 'var(--bg-2)' }}
                   onKeyDown={(e) => { if (e.key === 'Enter') navigate('/catalog') }} />
                 <button className="btn btn-primary" onClick={() => navigate('/catalog')} style={{ position: 'absolute', right: 7, top: 7, height: 46 }}>Найти</button>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
-                style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 28 }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginRight: 8, alignSelf: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Популярное:</span>
+              <motion.div className="scroll-x-mobile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
+                style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 28, width: '100%' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginRight: 8, alignSelf: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Популярное:</span>
                 {['VIP Сертификат', 'TikTok Dark', 'Scarlet', 'VK Сова'].map(t => (
-                  <Link key={t} to="/catalog" className="chip" style={{ background: 'transparent' }}>{t}</Link>
+                  <Link key={t} to="/catalog" className="chip" style={{ background: 'transparent', whiteSpace: 'nowrap' }}>{t}</Link>
                 ))}
               </motion.div>
             </div>

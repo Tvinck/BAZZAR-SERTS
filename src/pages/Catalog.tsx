@@ -52,7 +52,7 @@ export function Catalog() {
           {/* Контент */}
           <div style={{ minWidth: 0, width: '100%' }}>
             {/* Мобильные категории */}
-            <div className="desktop-hide" style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+            <div className="scroll-x-mobile" style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
               <button onClick={() => setActive(null)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === null ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>Все</button>
               {CATEGORIES.map(c => (
                 <button key={c.id} onClick={() => setActive(c.id)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === c.id ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>{c.title}</button>

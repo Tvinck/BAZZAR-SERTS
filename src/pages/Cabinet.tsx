@@ -247,7 +247,7 @@ export function Cabinet() {
             </button>
           </nav>
           
-          <nav style={{ display: 'none', gap: 8, overflowX: 'auto', paddingBottom: 8 }} className="sidebar-nav-mobile">
+          <nav style={{ display: 'none', gap: 8, overflowX: 'auto', paddingBottom: 8 }} className="sidebar-nav-mobile scroll-x-mobile">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} className="btn" style={{ padding: '11px 18px', whiteSpace: 'nowrap', ...(tab === t.id ? { background: 'var(--text)', color: 'var(--bg)' } : { background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--hair)' }) }}>
                 {t.icon} {t.label}
