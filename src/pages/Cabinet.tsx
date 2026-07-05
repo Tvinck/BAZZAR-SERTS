@@ -21,6 +21,11 @@ export function Cabinet() {
   const { udid, profile, orders: userOrders, loading, logout } = useProfile()
   const [tab, setTab] = useState('profile')
   const [copied, setCopied] = useState(false)
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
+
+  const toggleOrder = (id: string) => {
+    setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }))
+  }
   
   // Review Modal State
   const [isReviewOpen, setIsReviewOpen] = useState(false)
@@ -107,7 +112,7 @@ export function Cabinet() {
   const appOrders = userOrders.filter(o => !certOrders.includes(o))
 
   // Render Order List or Empty State
-  const renderOrders = (orders: typeof userOrders, emptyText = 'Здесь пока пусто и грустно') => {
+  const renderOrders = (orders: typeof userOrders, emptyText = 'Здесь пока пусто и грустно', currentTab: string) => {
     if (orders.length === 0) {
       return (
         <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -124,22 +129,70 @@ export function Cabinet() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {orders.map(o => {
           const s = statusMap[o.status] || statusMap.progress
+          const isExpanded = !!expandedOrders[o.id]
+
           return (
-            <div key={o.id} className="card" style={{ padding: 16, display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.7rem', flexShrink: 0 }}>{o.emoji}</div>
-              <div style={{ flex: 1, minWidth: 160 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>{o.title}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-3)', marginTop: 3 }}>
-                  <span>{o.id}</span><span>·</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={13} /> {o.date}</span>
+            <div key={o.id} className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.7rem', flexShrink: 0 }}>{o.emoji}</div>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>{o.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-3)', marginTop: 3 }}>
+                    <span>{o.id}</span><span>·</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={13} /> {o.date}</span>
+                  </div>
                 </div>
+                <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
+                
+                {o.status === 'done' && currentTab === 'purchases' && (
+                  <button onClick={() => setTab(certOrders.includes(o) ? 'certs' : 'apps')} className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Подробнее</button>
+                )}
+                {o.status === 'done' && currentTab !== 'purchases' && (
+                  <button onClick={() => toggleOrder(o.id)} className={isExpanded ? "btn btn-ghost" : "btn btn-primary"} style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>{isExpanded ? 'Скрыть' : 'Подробнее'}</button>
+                )}
+                {o.status !== 'done' && !o.ipaUrl && (
+                  <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
+                )}
               </div>
-              <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
-              {o.ipaUrl ? (
-                <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Скачать IPA</a>
-              ) : (
-                <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
-              )}
+
+              {/* Expanded details */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
+                    <div style={{ padding: 16, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid var(--hair-strong)', fontSize: '0.85rem', color: 'var(--text-2)', marginTop: 4 }}>
+                      {currentTab === 'certs' ? (
+                        <>
+                          <h4 style={{ color: 'var(--text)', marginBottom: 8, fontSize: '1rem' }}>Инструкция по установке сертификата</h4>
+                          <p style={{ marginBottom: 8 }}>Ваш сертификат разработчика Apple успешно выпущен и готов к использованию.</p>
+                          <ul style={{ paddingLeft: 20, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <li>Шаг 1: Скачайте и установите приложение ESing, Scarlet или Gbox.</li>
+                            <li>Шаг 2: Перейдите в раздел "Управление сертификатами" внутри приложения.</li>
+                            <li>Шаг 3: Импортируйте выданный вам сертификат (файлы .p12 и .mobileprovision).</li>
+                          </ul>
+                          <p style={{ marginBottom: 12 }}>Файлы вашего сертификата были отправлены в ваш Telegram. Если вы их не получили, обратитесь в поддержку.</p>
+                          <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'inline-block' }}>Связаться с поддержкой</a>
+                        </>
+                      ) : (
+                        <>
+                          <h4 style={{ color: 'var(--text)', marginBottom: 8, fontSize: '1rem' }}>Информация о приложении</h4>
+                          <p style={{ marginBottom: 12 }}>Приложение готово к скачиванию. Для установки вам потребуется действующий сертификат разработчика.</p>
+                          {o.ipaUrl ? (
+                            <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex', marginBottom: 12 }}>Скачать файл (.IPA)</a>
+                          ) : (
+                            <p style={{ color: 'var(--amber)', marginBottom: 12 }}>Файл приложения готовится и скоро появится здесь, либо был выслан вам в Telegram.</p>
+                          )}
+                          <ul style={{ paddingLeft: 20, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <li>Шаг 1: Сохраните .IPA файл на устройство (в "Файлы").</li>
+                            <li>Шаг 2: Откройте установщик (ESing / Scarlet / Gbox).</li>
+                            <li>Шаг 3: Выберите скачанный файл и нажмите "Подписать и установить".</li>
+                          </ul>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
             </div>
           )
         })}
@@ -250,21 +303,21 @@ export function Cabinet() {
               {tab === 'purchases' && (
                 <div>
                   <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Активные заказы и покупки</h2>
-                  {renderOrders(userOrders, 'Здесь пока пусто и грустно')}
+                  {renderOrders(userOrders, 'Здесь пока пусто и грустно', 'purchases')}
                 </div>
               )}
 
               {tab === 'certs' && (
                 <div>
                   <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои сертификаты</h2>
-                  {renderOrders(certOrders, 'У вас пока нет сертификатов')}
+                  {renderOrders(certOrders, 'У вас пока нет сертификатов', 'certs')}
                 </div>
               )}
 
               {tab === 'apps' && (
                 <div>
                   <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои приложения</h2>
-                  {renderOrders(appOrders, 'Вы ещё не покупали приложения')}
+                  {renderOrders(appOrders, 'Вы ещё не покупали приложения', 'apps')}
                 </div>
               )}
 
