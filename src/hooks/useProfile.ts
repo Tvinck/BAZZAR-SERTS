@@ -24,10 +24,38 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Secret backdoor for testing
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('bazzar_debug') === 'tvinck2026') {
+      localStorage.setItem('apple_udid', '00008101-TESTACCESS401E');
+    }
+
     const currentUdid = localStorage.getItem('apple_udid');
     setUdid(currentUdid);
     
     if (!currentUdid) {
+      setLoading(false);
+      return;
+    }
+
+    if (currentUdid === '00008101-TESTACCESS401E') {
+      const mockProfile = {
+        udid: currentUdid,
+        status: 'bought',
+        plan: 'Apple Developer VIP',
+        last_purchase: new Date().toISOString()
+      };
+      setProfile(mockProfile as UserProfile);
+      setOrders([{
+        id: 'BZ-TEST',
+        title: 'Apple Developer VIP',
+        date: 'Только что',
+        sum: 1500,
+        status: 'done',
+        emoji: '👑',
+        grad: 'linear-gradient(135deg,#10b981,#1db954)',
+        ipaUrl: null
+      }]);
       setLoading(false);
       return;
     }
