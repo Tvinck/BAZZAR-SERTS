@@ -102,8 +102,8 @@ export function Cabinet() {
     <div style={{ position: 'relative' }}>
       <div className="container" style={{ position: 'relative', zIndex: 2, padding: '32px 0 60px' }}>
         {/* Профиль-хедер */}
-        <div className="card" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 20 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 'var(--radius-lg)', background: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.8rem', color: 'var(--bg)' }}>U</div>
+        <div className="glass" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 20, border: '1px solid var(--hair-strong)' }}>
+          <img src="/img/mascot_raccoon.png" style={{ width: 72, height: 72, borderRadius: 'var(--radius-lg)', border: '2px solid var(--violet)', boxShadow: '0 0 15px rgba(192, 132, 252, 0.3)', objectFit: 'cover' }} alt="User" />
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
               <h1 style={{ fontSize: '1.5rem', textTransform: 'none' }}>Пользователь</h1>
@@ -112,6 +112,17 @@ export function Cabinet() {
             <div style={{ color: 'var(--text-3)', fontSize: '0.86rem', marginTop: 2 }}>UDID: {udid.substring(0, 10)}...{udid.substring(udid.length - 4)}</div>
           </div>
           <button onClick={handleLogout} className="btn btn-ghost" style={{ padding: '11px 16px' }}><LogOutIcon size={16} /> Выйти</button>
+        </div>
+
+        {/* Инфо-облако от Маскота */}
+        <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)', marginBottom: 22 }}>
+          <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid var(--violet)', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--violet)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>
+              Привет! Я слежу за статусом твоих сертификатов Apple Developer. Если заказ «В обработке» — мы уже отправляем запрос в Apple, это обычно занимает от 1 до 5 часов. Всё под контролем! 🤝
+            </p>
+          </div>
         </div>
 
         {/* Метрики */}
@@ -240,10 +251,11 @@ export function Cabinet() {
 
 function MetricCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: string }) {
   return (
-    <div className="card" style={{ padding: '18px 20px' }}>
-      <div style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', background: 'var(--bg)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, marginBottom: 12 }}>{icon}</div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem' }}>{value}</div>
-      <div style={{ fontSize: '0.8rem', color: 'var(--text-3)' }}>{label}</div>
+    <div className="glass" style={{ padding: '20px 24px', border: '1px solid var(--hair-strong)', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius)' }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`, filter: 'blur(10px)' }} />
+      <div style={{ width: 42, height: 42, borderRadius: 'var(--radius)', background: 'var(--bg-2)', border: `1px solid ${accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: accent, marginBottom: 14, boxShadow: `0 0 15px ${accent}15` }}>{icon}</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 850, fontSize: '1.75rem', color: '#fff' }}>{value}</div>
+      <div style={{ fontSize: '0.82rem', color: 'var(--text-2)', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
     </div>
   )
 }

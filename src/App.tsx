@@ -11,10 +11,7 @@ import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
 import { Success } from './pages/Success'
 import { NotFound } from './pages/NotFound'
-
 import { initAnalytics, trackEvent } from './lib/analytics'
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
 
 function RouteTracker() {
   const location = useLocation();

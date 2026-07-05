@@ -5,28 +5,54 @@ export function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', textAlign: 'center', padding: '0 16px' }}>
-      <motion.div 
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        style={{ width: 120, height: 120, marginBottom: 32, background: 'var(--surface-2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--hair)', boxShadow: '0 10px 40px rgba(0,0,0,0.8)' }}
-      >
-        <span style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--text)' }}>
-          404
-        </span>
-      </motion.div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '75vh', textAlign: 'center', padding: '40px 16px', position: 'relative', overflow: 'hidden' }}>
       
-      <h1 className="section-title" style={{ marginBottom: 12 }}>Страница не найдена</h1>
-      <p style={{ color: 'var(--text-2)', maxWidth: 400, margin: '0 auto 32px', fontSize: '1.1rem' }}>
-        Похоже, вы перешли по неверной ссылке или страница была удалена.
-      </p>
+      {/* Glow effect behind mascot */}
+      <div style={{ position: 'absolute', width: 350, height: 350, borderRadius: '50%', background: 'radial-gradient(circle, rgba(192, 132, 252, 0.12) 0%, transparent 70%)', filter: 'blur(40px)', zIndex: 0, top: '20%' }} />
 
-      <button 
-        onClick={() => navigate('/')} 
-        className="btn btn-primary"
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 1 }}
       >
-        На главную
-      </button>
+        {/* Animated Mascot Wrapper */}
+        <div className="float-mascot" style={{ position: 'relative', marginBottom: 28 }}>
+          <img 
+            src="/img/mascot_raccoon.png" 
+            style={{ width: 180, height: 180, borderRadius: '24px', border: '2px solid var(--violet)', boxShadow: '0 0 30px rgba(192, 132, 252, 0.4)' }} 
+            alt="Confused Raccoon" 
+          />
+          <span style={{ position: 'absolute', top: -15, right: -15, background: 'var(--red)', color: '#000', fontSize: '0.85rem', fontWeight: 900, padding: '4px 10px', borderRadius: 100, border: '2px solid var(--bg)', boxShadow: '0 5px 15px rgba(248, 113, 113, 0.4)', textTransform: 'uppercase', fontFamily: 'var(--font-display)' }}>
+            Ошибка
+          </span>
+        </div>
+
+        {/* 404 Code with Neon Glow */}
+        <h1 style={{ fontSize: 'clamp(4.5rem, 10vw, 6.5rem)', fontWeight: 900, margin: 0, lineHeight: 0.9, letterSpacing: '-0.05em', color: '#fff', textShadow: '0 0 10px rgba(192, 132, 252, 0.5), 0 0 30px rgba(192, 132, 252, 0.3)' }}>
+          404
+        </h1>
+
+        <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '14px 0 10px', color: '#fff', letterSpacing: '-0.02em' }}>
+          СТРАНИЦА ПОТЕРЯЛАСЬ В СЕТИ
+        </h2>
+
+        <p style={{ color: 'var(--text-2)', maxWidth: 440, margin: '0 auto 36px', fontSize: '1.05rem', lineHeight: 1.6 }}>
+          Енот-саппорт обшарил все закоулки, но этот адрес не существует или был перенесен. Попробуем вернуться назад?
+        </p>
+
+        {/* Action Button */}
+        <motion.button 
+          whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(192, 132, 252, 0.4)' }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate('/')} 
+          className="btn btn-primary"
+          style={{ padding: '14px 28px', border: '1px solid var(--violet)', background: 'linear-gradient(135deg, #fff 0%, #e4e4e7 100%)', boxShadow: '0 10px 30px rgba(192, 132, 252, 0.2)' }}
+        >
+          На главную
+        </motion.button>
+
+      </motion.div>
     </div>
   );
 }

@@ -5,35 +5,40 @@
 
 :root {
   /* Поверхности */
-  --bg: #050505;
-  --bg-2: #0a0a0a;
-  --surface: #0a0a0a;
-  --surface-2: #111111;
-  --elevated: #1a1a1a;
-  --hair: rgba(255, 255, 255, 0.12);
-  --hair-strong: rgba(255, 255, 255, 0.2);
+  --bg: #060814;
+  --bg-2: #0b0e20;
+  --surface: rgba(12, 16, 37, 0.65);
+  --surface-2: rgba(20, 26, 60, 0.8);
+  --elevated: #1b2246;
+  --hair: rgba(255, 255, 255, 0.07);
+  --hair-strong: rgba(255, 255, 255, 0.15);
 
   /* Текст */
   --text: #ffffff;
-  --text-2: #a1a1aa;
-  --text-3: #52525b;
+  --text-2: #94a3b8;
+  --text-3: #475569;
 
   /* Бренд / акценты */
-  --violet: #a78bfa;
-  --cyan: #22d3ee;
+  --violet: #c084fc;
+  --cyan: #38bdf8;
   --lime: #a3e635;
   --amber: #fbbf24;
   --green: #4ade80;
   --red: #f87171;
 
-  --radius: 8px;
-  --radius-lg: 12px;
-  --radius-sm: 4px;
+  /* Неоновые свечения */
+  --neon-violet: #a855f7;
+  --neon-cyan: #06b6d4;
+  --neon-emerald: #10b981;
+
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-sm: 8px;
 
   --font-display: 'Bricolage Grotesque', 'Onest', system-ui, sans-serif;
   --font: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -77,10 +82,11 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 }
 
 .glass {
-  background: rgba(10, 10, 10, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--hair);
+  box-shadow: var(--shadow);
 }
 
 /* Карточка */
@@ -88,12 +94,28 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
   background: var(--surface);
   border: 1px solid var(--hair);
   border-radius: var(--radius);
-  transition: transform .2s ease, border-color .2s;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform .3s cubic-bezier(0.16, 1, 0.3, 1), border-color .3s, box-shadow .3s;
 }
 .card-hover:hover {
-  transform: translateY(-4px);
-  border-color: var(--text);
-  box-shadow: 4px 4px 0 rgba(255,255,255,0.05);
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 255, 255, 0.05);
+}
+
+/* Неоновые свечения при наведении */
+.glow-violet:hover {
+  border-color: var(--violet) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(192, 132, 252, 0.35) !important;
+}
+.glow-cyan:hover {
+  border-color: var(--cyan) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.35) !important;
+}
+.glow-emerald:hover {
+  border-color: var(--green) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(74, 222, 128, 0.35) !important;
 }
 
 /* Кнопки */
@@ -263,3 +285,13 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 }
 
 @media (max-width:880px){ .prod-grid{ grid-template-columns:1fr !important } }
+
+/* Маскот-анимации */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+.float-mascot {
+  animation: float 4s ease-in-out infinite;
+}

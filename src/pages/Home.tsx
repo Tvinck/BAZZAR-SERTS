@@ -52,39 +52,69 @@ export function Home() {
   return (
     <div>
       {/* ── HERO ── */}
-      <section style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(60px, 10vw, 120px) 0 clamp(40px, 8vw, 80px)' }}>
-        <div className="container" style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="chip" style={{ marginBottom: 28, background: 'transparent' }}>
-            <SparkIcon size={16} /> Новый способ установки
-          </motion.div>
+      <section style={{ position: 'relative', overflow: 'hidden', padding: 'clamp(40px, 8vw, 100px) 0' }}>
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+          <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'center' }}>
+            
+            {/* Текст и поиск */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+                className="chip" style={{ marginBottom: 20, background: 'transparent' }}>
+                <SparkIcon size={16} /> Новый способ установки
+              </motion.div>
 
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-            style={{ fontSize: 'clamp(2.4rem,6vw,4.4rem)', margin: '0 0 20px', lineHeight: 1.02 }}>
-            Свобода установки<br /><span className="grad-text">приложений</span> на iOS
-          </motion.h1>
+              <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+                style={{ fontSize: 'clamp(2.2rem,5vw,4.2rem)', margin: '0 0 20px', lineHeight: 1.02, textAlign: 'left', textTransform: 'uppercase' }}>
+                Свобода установки<br /><span style={{ background: 'linear-gradient(90deg, var(--violet), var(--cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>приложений</span> на iOS
+              </motion.h1>
 
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
-            style={{ fontSize: 'clamp(1rem, 1.8vw, 1.25rem)', color: 'var(--text-2)', maxWidth: 600, margin: '0 auto 36px', lineHeight: 1.6 }}>
-            Забудь про ограничения. Устанавливай удалённые из App Store приложения, моды и твики без ПК в два клика.
-          </motion.p>
+              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
+                style={{ fontSize: '1.15rem', color: 'var(--text-2)', maxWidth: 540, margin: '0 0 32px', lineHeight: 1.6 }}>
+                Забудь про ограничения. Устанавливай удалённые из App Store приложения, моды и твики без ПК в два клика.
+              </motion.p>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-            style={{ position: 'relative', width: '100%', maxWidth: 600 }}>
-            <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={20} /></span>
-            <input className="field" placeholder="Поиск приложений, сертификатов, утилит…" style={{ height: 60, paddingLeft: 50, paddingRight: 140, fontSize: '1rem' }}
-              onKeyDown={(e) => { if (e.key === 'Enter') navigate('/catalog') }} />
-            <button className="btn btn-primary" onClick={() => navigate('/catalog')} style={{ position: 'absolute', right: 7, top: 7, height: 46 }}>Найти</button>
-          </motion.div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
+                style={{ position: 'relative', width: '100%', maxWidth: 540 }}>
+                <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={20} /></span>
+                <input className="field" placeholder="Поиск приложений, сертификатов, утилит…" style={{ height: 60, paddingLeft: 50, paddingRight: 140, fontSize: '1rem', background: 'var(--bg-2)' }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate('/catalog') }} />
+                <button className="btn btn-primary" onClick={() => navigate('/catalog')} style={{ position: 'absolute', right: 7, top: 7, height: 46 }}>Найти</button>
+              </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
-            style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginTop: 32 }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginRight: 8, alignSelf: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Популярное:</span>
-            {['VIP Сертификат', 'TikTok Dark', 'Сбербанк', 'Scarlet', 'VK Сова'].map(t => (
-              <Link key={t} to="/catalog" className="chip" style={{ background: 'transparent' }}>{t}</Link>
-            ))}
-          </motion.div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}
+                style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 28 }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginRight: 8, alignSelf: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Популярное:</span>
+                {['VIP Сертификат', 'TikTok Dark', 'Scarlet', 'VK Сова'].map(t => (
+                  <Link key={t} to="/catalog" className="chip" style={{ background: 'transparent' }}>{t}</Link>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* Изображение маскота (Кибер-Енот) */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.85 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="float-mascot"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+            >
+              {/* Светящийся неоновый фон за маскотом */}
+              <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(192, 132, 252, 0.15) 0%, transparent 70%)', filter: 'blur(30px)', zIndex: 0 }} />
+              
+              <img 
+                src="/img/mascot_raccoon.png" 
+                style={{ width: 'clamp(200px, 25vw, 320px)', height: 'auto', borderRadius: '24px', zIndex: 1, boxShadow: '0 20px 50px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} 
+                alt="Cyber Raccoon Mascot" 
+              />
+              
+              {/* Диалоговое облако от маскота */}
+              <div className="glass" style={{ marginTop: 20, padding: '10px 16px', borderRadius: 12, border: '1px solid var(--hair-strong)', zIndex: 1, position: 'relative', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--violet)' }}>ЕНОТ-САППОРТ:</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text)', marginLeft: 6 }}>Подпишу любой IPA за 5 минут! 🚀</span>
+              </div>
+            </motion.div>
+
+          </div>
         </div>
       </section>
 

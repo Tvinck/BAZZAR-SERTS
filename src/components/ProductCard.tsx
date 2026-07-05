@@ -18,7 +18,7 @@ export function ProductCard({ product }: { product: Product }) {
     <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }} transition={{ duration: 0.4 }}>
       <Link 
         to={`/product/${product.id}`} 
-        className="card card-hover" 
+        className={`card card-hover ${product.category === 'certs' ? 'glow-violet' : product.category === 'apps' ? 'glow-cyan' : 'glow-emerald'}`}
         style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
         onClick={() => trackEvent('add_to_cart')}
       >

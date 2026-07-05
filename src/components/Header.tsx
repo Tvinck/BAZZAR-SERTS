@@ -6,12 +6,15 @@ export function Header() {
   const navigate = useNav()
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 100, padding: '12px 0', background: 'var(--bg)', borderBottom: '1px solid var(--hair)' }}>
+    <header className="glass" style={{ position: 'sticky', top: 0, zIndex: 100, padding: '10px 0', borderBottom: '1px solid var(--hair)' }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
         
         {/* Лого */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <BazzarMark size={28} />
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <img src="/img/mascot_raccoon.png" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--violet)', boxShadow: '0 0 10px rgba(192, 132, 252, 0.3)' }} alt="Mascot" />
+            <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--bg)', borderRadius: '50%', padding: 2, display: 'flex' }}><BazzarMark size={14} /></span>
+          </div>
           <div className="mobile-hide"><BazzarWordmark size="1.2rem" /></div>
         </Link>
 
