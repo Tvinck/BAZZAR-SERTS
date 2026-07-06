@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { trackEvent } from '../lib/analytics';
 import { supabase } from '../lib/supabase';
+import { ShieldAlert, Lock, ShieldCheck, LifeBuoy } from 'lucide-react';
 
 export function Success() {
   const [searchParams] = useSearchParams();
@@ -147,13 +148,50 @@ export function Success() {
         <p style={{ fontSize: '0.95rem', color: 'var(--text-2)' }}>
           Для оформления сертификата разработчика нам необходим UDID вашего устройства. Нажмите кнопку ниже и установите профиль конфигурации Apple.
         </p>
+        
+        {/* Предупреждение о защите устройства */}
+        <div style={{ background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.3)', borderRadius: 12, padding: 16, display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', marginTop: 8 }}>
+          <ShieldAlert size={24} style={{ color: '#fbbf24', flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <div style={{ fontWeight: 700, color: '#fbbf24', marginBottom: 4 }}>Защита украденного устройства</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-2)' }}>
+              Если на вашем iPhone включена «Защита украденного устройства» и вы находитесь вдали от знакомых мест (дома или работы), Apple может попросить <b>подождать 1 час</b> перед установкой профиля. Это нормально. Просто дождитесь окончания таймера и повторите попытку установки профиля.
+            </div>
+          </div>
+        </div>
+
         <button 
           onClick={handleGetUdid}
           className="btn btn-primary"
-          style={{ width: '100%', marginTop: 16, padding: '16px 24px', fontSize: '1rem' }}
+          style={{ width: '100%', marginTop: 8, padding: '16px 24px', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
         >
+          <Lock size={18} />
           Получить UDID
         </button>
+
+        {/* Блок FAQ */}
+        <div style={{ marginTop: 24, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="card" style={{ padding: 16, background: 'var(--surface-2)' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+              <ShieldCheck size={20} style={{ color: 'var(--lime)' }} />
+              <div style={{ fontWeight: 700 }}>Это безопасно? Зачем нужен UDID?</div>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', paddingLeft: 32 }}>
+              UDID — это уникальный идентификатор вашего устройства (как VIN у автомобиля). Он нужен <b>исключительно</b> для того, чтобы добавить ваш iPhone в аккаунт разработчика Apple. Профиль конфигурации собирает только этот номер и ничего больше. Это стандартная и полностью безопасная процедура Apple.
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 16, background: 'var(--surface-2)' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
+              <LifeBuoy size={20} style={{ color: 'var(--cyan)' }} />
+              <div style={{ fontWeight: 700 }}>Возникли проблемы?</div>
+            </div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', paddingLeft: 32 }}>
+              Если у вас что-то не получается, сайт выдает ошибку или вы случайно закрыли нужную вкладку — не переживайте. <br/>
+              Напишите в нашу <a href="https://t.me/SUPPORT_TG" target="_blank" rel="noreferrer" style={{ color: 'var(--text)', textDecoration: 'underline' }}>Службу поддержки</a>, прикрепите код вашего заказа, и мы с радостью поможем вам завершить настройку!
+            </div>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
