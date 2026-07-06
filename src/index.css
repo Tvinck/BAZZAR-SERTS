@@ -228,7 +228,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
   .container { padding: 0 16px; }
   
   /* Утилиты для перестроения */
-  .stack-mobile { flex-direction: column !important; align-items: stretch !important; }
+  .stack-mobile { display: flex !important; flex-direction: column !important; align-items: stretch !important; gap: 16px !important; }
   .grid-mobile-1 { grid-template-columns: minmax(0, 1fr) !important; }
   .flex-col-mobile { flex-direction: column !important; }
   .text-center-mobile { text-align: center !important; justify-content: center !important; }
