@@ -64,29 +64,7 @@ export function Product() {
     : Math.round(unit * (1 + (selectedDenom.discount || 0)/100))
 
   const handleBuy = () => {
-    if (paymentMethod === 'ggsel') {
-      // TODO: Впишите ваши реальные ID товаров Digiseller (id_d) для каждого тарифа
-      const digisellerIds: Record<string, number> = {
-        'Базовый': 102490839,  // Сертификат разработчика Apple - ESign
-        'Продвинутый': 222222, // Замените на реальный ID продвинутого тарифа (если есть отдельный товар)
-        'VIP': 333333          // Замените на реальный ID VIP тарифа (если есть отдельный товар)
-      }
-      
-      if (isCert) {
-        const id_d = digisellerIds[selectedDenom.label] || 102490839; // По умолчанию используем ESign
-        if (id_d) {
-          window.location.href = `https://oplata.info/asp2/pay.asp?id_d=${id_d}`
-        } else {
-          // Если ID пока не вписан, используем тестовый мок, чтобы не сломать сайт
-          window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
-        }
-      } else {
-        // Для других товаров
-        window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
-      }
-    } else {
-      alert('В данный момент доступна только оплата GGSel / Карта')
-    }
+    window.location.href = 'https://ggsel.net/catalog/product/sertifikat-razrabotcika-apple-esign-102490839'
   }
 
   return (
@@ -159,7 +137,8 @@ export function Product() {
                     transition: 'all 0.2s ease',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 12
+                    gap: 12,
+                    color: denom === i ? '#ffffff' : 'var(--text-2)'
                   }}>
                     {denom === i && (
                       <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: '#ffffff', color: '#000000', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
