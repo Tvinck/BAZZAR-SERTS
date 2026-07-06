@@ -160,6 +160,21 @@ export function Success() {
           </div>
         </div>
 
+        {/* Пошаговая инструкция */}
+        <div style={{ background: 'var(--bg)', border: '1px solid var(--hair-strong)', borderRadius: 12, padding: '16px', marginTop: 8, textAlign: 'left', fontSize: '0.9rem', color: 'var(--text-2)' }}>
+          <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: 20, height: 20, background: 'var(--text)', color: 'var(--bg)', borderRadius: '50%', fontSize: '0.75rem' }}>i</span>
+            Краткая инструкция:
+          </div>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <li>Нажмите кнопку <b>«Получить UDID»</b> ниже.</li>
+            <li>В появившемся окне браузера нажмите <b>«Разрешить»</b>.</li>
+            <li>Откройте <b>«Настройки»</b> вашего iPhone.</li>
+            <li>Сверху (под вашим Apple ID) появится пункт <b>«Профиль загружен»</b> — нажмите на него и выберите <b>«Установить»</b> (потребуется код-пароль от экрана).</li>
+            <li>После установки вас автоматически вернет на наш сайт для завершения!</li>
+          </ol>
+        </div>
+
         <button 
           onClick={handleGetUdid}
           className="btn btn-primary"
