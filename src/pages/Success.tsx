@@ -21,42 +21,57 @@ export function Success() {
     }
 
     const checkOrder = async () => {
-      try {
-        // Запрос к бэкенду Connect для верификации и сохранения заказа GGSel
-        const res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
-        const data = await res.json();
+      let retries = 10;
+      while (retries > 0) {
+        try {
+          // Запрос к бэкенду Connect для верификации и сохранения заказа GGSel
+          const res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
+          const data = await res.json();
 
-        if (res.ok && data.success) {
-          setOrder(data);
-          
-          // Проверяем, есть ли уже UDID
-          const existingUdid = localStorage.getItem('apple_udid');
-          if (existingUdid) {
-            // Если есть, сразу привязываем заказ
-            const linkRes = await fetch('https://connect-4va6.vercel.app/api/shop/ggsel/link', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ uniquecode, udid: existingUdid })
-            });
-            const linkData = await linkRes.json();
+          if (res.ok && data.success) {
+            setOrder(data);
             
-            if (linkRes.ok && linkData.success) {
-              // Заказ привязан, перенаправляем в кабинет
-              navigate('/cabinet', { replace: true });
+            // Проверяем, есть ли уже UDID
+            const existingUdid = localStorage.getItem('apple_udid');
+            if (existingUdid) {
+              // Если есть, сразу привязываем заказ
+              const linkRes = await fetch('https://connect-4va6.vercel.app/api/shop/ggsel/link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uniquecode, udid: existingUdid })
+              });
+              const linkData = await linkRes.json();
+              
+              if (linkRes.ok && linkData.success) {
+                // Заказ привязан, перенаправляем в кабинет
+                navigate('/cabinet', { replace: true });
+                return;
+              }
+            } else {
+              // Если UDID нет, сохраняем код заказа в памяти для привязки после получения UDID
+              localStorage.setItem('pending_ggsel_order', uniquecode);
+              setLoading(false);
               return;
             }
-          } else {
-            // Если UDID нет, сохраняем код заказа в памяти для привязки после получения UDID
-            localStorage.setItem('pending_ggsel_order', uniquecode);
-            setLoading(false);
           }
-        } else {
-          setError(data.error || 'Ошибка проверки заказа');
-          setLoading(false);
+          
+          // Если заказ еще не найден, ждем 3 секунды и пробуем снова
+          retries--;
+          if (retries === 0) {
+            setError(data.error || 'Ошибка проверки заказа. Пожалуйста, обновите страницу.');
+            setLoading(false);
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        } catch (err) {
+          retries--;
+          if (retries === 0) {
+            setError('Сетевая ошибка при проверке заказа');
+            setLoading(false);
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
         }
-      } catch (err) {
-        setError('Сетевая ошибка при проверке заказа');
-        setLoading(false);
       }
     };
 
