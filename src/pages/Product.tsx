@@ -125,52 +125,53 @@ export function Product() {
             <div className="card" style={{ padding: '24px 24px 12px' }}>
               <h3 style={{ fontSize: '1.2rem', marginBottom: 16 }}>Выберите номинал</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
-                {denominations.map((d, i) => (
-                  <button key={i} onClick={() => setDenom(i)} style={{ 
-                    textAlign: 'left', 
-                    background: denom === i ? 'rgba(255, 255, 255, 0.06)' : 'var(--bg)',
-                    border: `2px solid ${denom === i ? '#ffffff' : 'var(--hair)'}`,
-                    borderRadius: 16, 
-                    padding: 16, 
-                    cursor: 'pointer',
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                    color: denom === i ? '#ffffff' : 'var(--text-2)'
-                  }}>
-                    {denom === i && (
-                      <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: '#ffffff', color: '#000000', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Выбрано
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 4 }}>
-                      <div style={{ fontSize: '1.3rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>{d.label}</div>
-                      {isCert && (
-                        <div style={{ background: '#fbbf24', color: '#000', fontSize: '0.75rem', fontWeight: 800, padding: '2px 6px', borderRadius: 6 }}>
-                          + {d.warranty}
+                {denominations.map((d, i) => {
+                  const isSelected = denom === i;
+                  return (
+                    <button key={i} onClick={() => setDenom(i)} style={{ 
+                      textAlign: 'left', 
+                      background: isSelected ? 'rgba(163, 230, 53, 0.1)' : 'var(--surface-2)',
+                      border: `2px solid ${isSelected ? 'var(--lime)' : 'transparent'}`,
+                      borderRadius: 16, 
+                      padding: 16, 
+                      cursor: 'pointer',
+                      position: 'relative',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      color: isSelected ? 'var(--text)' : 'var(--text-2)'
+                    }}>
+                      {isSelected && (
+                        <div style={{ position: 'absolute', top: 12, right: 12, color: 'var(--lime)', background: 'var(--bg)', borderRadius: '50%', padding: 2 }}>
+                          <CheckIcon size={16} />
                         </div>
                       )}
-                    </div>
-                    {d.image && (
-                      <div style={{ height: 80, display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '4px 0' }}>
-                        <img src={d.image} alt={d.label} style={{ maxHeight: '100%', objectFit: 'contain' }} onError={(e) => { e.currentTarget.src = isCert ? '/img/cat_certs.png' : '/img/cat_apps.png' }} />
+                      
+                      <div style={{ paddingRight: 24, marginBottom: 12 }}>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)', marginBottom: 4, fontFamily: 'var(--font-display)' }}>
+                          {d.label}
+                        </div>
+                        {isCert && (
+                          <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, display: 'inline-block', background: 'rgba(251, 191, 36, 0.1)', padding: '2px 6px', borderRadius: 6 }}>
+                            + Гарантия {d.warranty}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 'auto', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '1.2rem', fontWeight: 800 }}>{isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽</span>
-                      {d.discount && (
-                        <span style={{ background: 'var(--red)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '2px 6px', borderRadius: 4, marginBottom: 3 }}>
-                          -{d.discount}%
+                      
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '1.3rem', fontWeight: 800, color: isSelected ? 'var(--lime)' : 'var(--text)' }}>
+                          {isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽
                         </span>
-                      )}
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', textDecoration: 'line-through', marginBottom: 3 }}>
-                        {isCert ? d.oldPrice : Math.round((product.price * (d.mult || 1)) * (1 + d.discount/100))} ₽
-                      </span>
-                    </div>
-                  </button>
-                ))}
+                        {d.discount && (
+                          <span style={{ background: 'var(--red)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '2px 4px', borderRadius: 4, marginBottom: 3 }}>
+                            -{d.discount}%
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
