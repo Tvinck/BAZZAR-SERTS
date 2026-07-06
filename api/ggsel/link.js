@@ -55,6 +55,19 @@ export default async function handler(req, res) {
       console.error('Error updating user:', userError);
     }
 
+    // Insert into CRM (apple_certificates)
+    const salePrice = order.price || 0;
+    const { error: certError } = await supabase.from('apple_certificates').insert({
+      udid: udid,
+      plan_id: plan,
+      source: 'GGSel',
+      sale_price: salePrice,
+      crm_status: 'pending'
+    });
+    if (certError) {
+      console.error('Error inserting into apple_certificates:', certError);
+    }
+
     // 4. (Optional) Call Digiseller to confirm delivery 
     // Usually done via PUT /purchases/delivery but let's skip it unless needed.
     // If needed, we can implement it here.

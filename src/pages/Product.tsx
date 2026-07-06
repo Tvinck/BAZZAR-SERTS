@@ -65,9 +65,27 @@ export function Product() {
 
   const handleBuy = () => {
     if (paymentMethod === 'ggsel') {
-      window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
+      // TODO: Впишите ваши реальные ID товаров Digiseller (id_d) для каждого тарифа
+      const digisellerIds: Record<string, number> = {
+        'Базовый': 111111,     // Замените на реальный ID базового тарифа
+        'Продвинутый': 222222, // Замените на реальный ID продвинутого тарифа
+        'VIP': 333333          // Замените на реальный ID VIP тарифа
+      }
+      
+      if (isCert) {
+        const id_d = digisellerIds[selectedDenom.label]
+        if (id_d && id_d !== 111111) {
+          window.location.href = `https://oplata.info/asp2/pay.asp?id_d=${id_d}`
+        } else {
+          // Если ID пока не вписан, используем тестовый мок, чтобы не сломать сайт
+          window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
+        }
+      } else {
+        // Для других товаров
+        window.location.href = '/success?uniquecode=GGSEL_MOCK_' + Math.floor(Math.random() * 1000000)
+      }
     } else {
-      alert('В демо-режиме доступна только оплата GGSel')
+      alert('В данный момент доступна только оплата GGSel / Карта')
     }
   }
 

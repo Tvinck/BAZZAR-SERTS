@@ -63,11 +63,13 @@ export default async function handler(req, res) {
     }
 
     const itemName = purchaseData.name_goods || 'Apple Certificate';
+    const amount = purchaseData.amount || 0;
     
     // Save to Supabase bazzar_orders
     const { error: dbError } = await supabase.from('bazzar_orders').upsert({
       uniquecode: uniquecode,
       item_name: itemName,
+      price: amount,
       status: 'pending_udid',
       created_at: new Date().toISOString()
     });
