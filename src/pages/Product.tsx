@@ -67,14 +67,14 @@ export function Product() {
     if (paymentMethod === 'ggsel') {
       // TODO: Впишите ваши реальные ID товаров Digiseller (id_d) для каждого тарифа
       const digisellerIds: Record<string, number> = {
-        'Базовый': 111111,     // Замените на реальный ID базового тарифа
-        'Продвинутый': 222222, // Замените на реальный ID продвинутого тарифа
-        'VIP': 333333          // Замените на реальный ID VIP тарифа
+        'Базовый': 102490839,  // Сертификат разработчика Apple - ESign
+        'Продвинутый': 222222, // Замените на реальный ID продвинутого тарифа (если есть отдельный товар)
+        'VIP': 333333          // Замените на реальный ID VIP тарифа (если есть отдельный товар)
       }
       
       if (isCert) {
-        const id_d = digisellerIds[selectedDenom.label]
-        if (id_d && id_d !== 111111) {
+        const id_d = digisellerIds[selectedDenom.label] || 102490839; // По умолчанию используем ESign
+        if (id_d) {
           window.location.href = `https://oplata.info/asp2/pay.asp?id_d=${id_d}`
         } else {
           // Если ID пока не вписан, используем тестовый мок, чтобы не сломать сайт
