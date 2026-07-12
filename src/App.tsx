@@ -11,6 +11,7 @@ import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
 import { Success } from './pages/Success'
 import { NotFound } from './pages/NotFound'
+import { AppsPage } from './pages/AppsPage'
 import { initAnalytics, trackEvent } from './lib/analytics'
 
 function RouteTracker() {
@@ -64,6 +65,7 @@ function MobileNav() {
   const navItems = [
     { path: '/', label: 'Главная', icon: HomeIcon },
     { path: '/catalog', label: 'Каталог', icon: ListIcon },
+    { path: '/apps', label: 'Приложения', icon: ListIcon },
     { path: '/cabinet', label: 'Кабинет', icon: TabUserIcon },
   ]
   
@@ -102,6 +104,7 @@ export default function App() {
               <Route path="/catalog" element={<Catalog />} />
               <Route path="/product/:id" element={<Product />} />
               <Route path="/cabinet" element={<Cabinet />} />
+              <Route path="/apps" element={<AppsPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/success" element={<Success />} />
               <Route path="*" element={<NotFound />} />

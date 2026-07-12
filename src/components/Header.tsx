@@ -29,6 +29,9 @@ export function Header() {
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/catalog')} className="btn btn-ghost" style={{ padding: '8px 16px', border: 'none' }}>
             Каталог
           </motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => navigate('/apps')} className="btn btn-ghost" style={{ padding: '8px 16px', border: 'none' }}>
+            Приложения
+          </motion.button>
           <button className="btn btn-primary" onClick={() => navigate('/cabinet')}>
             Кабинет <UserIcon size={16} />
           </button>
