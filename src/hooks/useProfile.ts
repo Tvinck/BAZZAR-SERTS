@@ -96,36 +96,9 @@ export function useProfile() {
           
           let allOrders: OrderItem[] = [];
 
-          // 1. Generate an order object from user profile if exists and no certsData duplicates it
-          if (userData && userData.plan) {
-            let ipaUrl = null;
-            const { data: prod } = await supabase
-              .from('bazzar_products')
-              .select('id, ipa_url')
-              .eq('title', userData.plan)
-              .single();
-              
-            if (prod?.ipa_url) ipaUrl = prod.ipa_url;
-            
-            allOrders.push({
-              id: 'BZ-' + userData.udid.substring(userData.udid.length - 5).toUpperCase(),
-              title: userData.plan,
-              date: userData.last_purchase ? new Date(userData.last_purchase).toLocaleDateString('ru-RU') : 'Недавно',
-              sum: userData.plan.includes('VIP') ? 1500 : (userData.plan.includes('1 Год') || userData.plan.includes('Apple') ? 800 : 0),
-              status: userData.status === 'bought' ? 'done' : 'progress',
-              emoji: userData.plan.includes('Developer') ? '📃' : (userData.plan.includes('VIP') ? '👑' : '⚡'),
-              grad: 'linear-gradient(135deg,#10b981,#1db954)',
-              ipaUrl,
-              productId: prod?.id
-            });
-          }
-
-          // 2. Add apple_certificates
+          // 1. Add apple_certificates
           if (certsData && certsData.length > 0) {
             for (const cert of certsData) {
-              // Avoid duplicates if plan matches what we already added
-              if (allOrders.find(o => o.title === cert.plan_id)) continue;
-
               allOrders.push({
                 id: 'CERT-' + cert.id.substring(0, 5).toUpperCase(),
                 title: cert.plan_id || 'Сертификат Apple',
@@ -138,6 +111,51 @@ export function useProfile() {
                 approval_comment: cert.approval_comment
               });
             }
+          }
+
+          // 2. Generate an order object from user profile ONLY if no certificates exist (fallback)
+          if (userData && userData.plan && (!certsData || certsData.length === 0)) {
+            let isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userData.plan);
+            let displayTitle = userData.plan;
+            let ipaUrl = null;
+            let prodId = undefined;
+
+            if (isUUID) {
+              // fetch product by ID
+              const { data: prod } = await supabase
+                .from('bazzar_products')
+                .select('id, title, ipa_url')
+                .eq('id', userData.plan)
+                .maybeSingle();
+              if (prod) {
+                displayTitle = prod.title;
+                ipaUrl = prod.ipa_url;
+                prodId = prod.id;
+              }
+            } else {
+              // fetch product by title
+              const { data: prod } = await supabase
+                .from('bazzar_products')
+                .select('id, ipa_url')
+                .eq('title', userData.plan)
+                .maybeSingle();
+              if (prod) {
+                ipaUrl = prod.ipa_url;
+                prodId = prod.id;
+              }
+            }
+
+            allOrders.push({
+              id: 'BZ-' + userData.udid.substring(userData.udid.length - 5).toUpperCase(),
+              title: displayTitle,
+              date: userData.last_purchase ? new Date(userData.last_purchase).toLocaleDateString('ru-RU') : 'Недавно',
+              sum: displayTitle.includes('VIP') ? 1500 : (displayTitle.includes('1 Год') || displayTitle.includes('Apple') ? 800 : 0),
+              status: userData.status === 'bought' ? 'done' : 'progress',
+              emoji: displayTitle.includes('Developer') ? '📃' : (displayTitle.includes('VIP') ? '👑' : '⚡'),
+              grad: 'linear-gradient(135deg,#10b981,#1db954)',
+              ipaUrl,
+              productId: prodId
+            });
           }
 
           setOrders(allOrders);
