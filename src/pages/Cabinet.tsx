@@ -172,12 +172,6 @@ export function Cabinet() {
                             </div>
                           )}
 
-                          <ul style={{ paddingLeft: 20, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            <li>Шаг 1: Скачайте и установите приложение ESing, Scarlet или Gbox.</li>
-                            <li>Шаг 2: Перейдите в раздел "Управление сертификатами" внутри приложения.</li>
-                            <li>Шаг 3: Импортируйте выданный вам сертификат (файлы .p12 и .mobileprovision).</li>
-                          </ul>
-                          <p style={{ marginBottom: 12 }}>Файлы вашего сертификата были отправлены в ваш Telegram. Если вы их не получили, обратитесь в поддержку.</p>
                           <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'inline-block' }}>Связаться с поддержкой</a>
                         </>
                       ) : (
