@@ -96,12 +96,43 @@ export function useProfile() {
           
           let allOrders: OrderItem[] = [];
 
-          // 1. Add apple_certificates
+          // 1. Preload product data for any UUIDs (either in certs or userData.plan)
+          const uuidsToFetch = new Set<string>();
+          if (certsData) {
+            certsData.forEach(cert => {
+              if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cert.plan_id)) {
+                uuidsToFetch.add(cert.plan_id);
+              }
+            });
+          }
+          if (userData && userData.plan && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userData.plan)) {
+             uuidsToFetch.add(userData.plan);
+          }
+
+          const productMap: Record<string, { title: string, ipa_url: string | null }> = {};
+          if (uuidsToFetch.size > 0) {
+            const { data: prods } = await supabase
+              .from('bazzar_products')
+              .select('id, title, ipa_url')
+              .in('id', Array.from(uuidsToFetch));
+            if (prods) {
+              prods.forEach(p => productMap[p.id] = p);
+            }
+          }
+
+          // 2. Add apple_certificates
           if (certsData && certsData.length > 0) {
             for (const cert of certsData) {
+              let displayTitle = cert.plan_id || 'Сертификат Apple';
+              if (productMap[cert.plan_id]) {
+                 displayTitle = productMap[cert.plan_id].title;
+              } else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cert.plan_id)) {
+                 displayTitle = 'Сертификат Apple ESign';
+              }
+
               allOrders.push({
                 id: 'CERT-' + cert.id.substring(0, 5).toUpperCase(),
-                title: cert.plan_id || 'Сертификат Apple',
+                title: displayTitle,
                 date: new Date(cert.created_at).toLocaleDateString('ru-RU'),
                 sum: cert.sale_price || 0,
                 status: cert.crm_status === 'approved' ? 'done' : 'progress',
@@ -113,27 +144,20 @@ export function useProfile() {
             }
           }
 
-          // 2. Generate an order object from user profile ONLY if no certificates exist (fallback)
+          // 3. Generate an order object from user profile ONLY if no certificates exist (fallback)
           if (userData && userData.plan && (!certsData || certsData.length === 0)) {
-            let isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userData.plan);
             let displayTitle = userData.plan;
             let ipaUrl = null;
             let prodId = undefined;
 
-            if (isUUID) {
-              // fetch product by ID
-              const { data: prod } = await supabase
-                .from('bazzar_products')
-                .select('id, title, ipa_url')
-                .eq('id', userData.plan)
-                .maybeSingle();
-              if (prod) {
-                displayTitle = prod.title;
-                ipaUrl = prod.ipa_url;
-                prodId = prod.id;
-              }
+            if (productMap[userData.plan]) {
+                displayTitle = productMap[userData.plan].title;
+                ipaUrl = productMap[userData.plan].ipa_url;
+                prodId = userData.plan;
+            } else if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userData.plan)) {
+                displayTitle = 'Сертификат Apple ESign';
             } else {
-              // fetch product by title
+              // fetch product by title if not uuid
               const { data: prod } = await supabase
                 .from('bazzar_products')
                 .select('id, ipa_url')
