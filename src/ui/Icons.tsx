@@ -110,6 +110,8 @@ export const KeyIcon = ({ size = 24 }: P) => (<svg {...base(size)}><circle cx="8
 
 export const ConsoleIcon = ({ size = 24 }: P) => (<svg {...base(size)}><rect x="2.5" y="8" width="19" height="9.5" rx="4.75" {...stroke} /><path d="M7 11.5v3M5.5 13h3" {...stroke} /><circle cx="16" cy="12" r="1" fill="currentColor" /><circle cx="18.5" cy="14" r="1" fill="currentColor" /></svg>)
 
+export const DownloadIcon = ({ size = 24 }: P) => (<svg {...base(size)}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" {...stroke} /><polyline points="7 10 12 15 17 10" {...stroke} /><line x1="12" y1="15" x2="12" y2="3" {...stroke} /></svg>)
+
 /** id категории → иконка (для плиток и фильтров). */
 export const CATEGORY_ICON: Record<string, React.FC<any>> = {
   'certs': ({ size = 24 }) => <img src="/img/cat_certs.png" style={{ width: size, height: size, objectFit: 'cover' }} alt="Certs" />,
