@@ -151,7 +151,7 @@ export function Cabinet() {
                   <button onClick={() => toggleOrder(o.id)} className={isExpanded ? "btn btn-ghost" : "btn btn-primary"} style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>{isExpanded ? 'Скрыть' : 'Подробнее'}</button>
                 )}
                 {o.status !== 'done' && !o.ipaUrl && (
-                  <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</a>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))} className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</button>
                 )}
               </div>
 
@@ -172,7 +172,7 @@ export function Cabinet() {
                             </div>
                           )}
 
-                          <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'inline-block' }}>Связаться с поддержкой</a>
+                          <button onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))} className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'inline-block' }}>Связаться с поддержкой</button>
                         </>
                       ) : (
                         <>

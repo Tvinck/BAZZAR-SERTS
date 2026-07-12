@@ -18,6 +18,10 @@ export const SupportChat = () => {
       localStorage.setItem('bazzar_support_id', storedId)
     }
     setUserId(storedId)
+
+    const handleOpenChat = () => setIsOpen(true)
+    window.addEventListener('open-support-chat', handleOpenChat)
+    return () => window.removeEventListener('open-support-chat', handleOpenChat)
   }, [])
 
   useEffect(() => {
