@@ -25,9 +25,17 @@ export function Success() {
       let retries = 10;
       while (retries > 0) {
         try {
-          // Запрос к бэкенду Connect для верификации и сохранения заказа GGSel
-          const res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
-          const data = await res.json();
+          // Запрос к бэкенду Connect для верификации
+          let res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
+          let data = await res.json();
+          let shop = 'ggsel';
+
+          // Если в GGSel заказ не найден (или вернул ошибку, но API ответил 200), пробуем Digiseller
+          if (!res.ok || !data.success) {
+            res = await fetch(`https://connect-4va6.vercel.app/api/shop/digiseller/verify?uniquecode=${uniquecode}`);
+            data = await res.json();
+            shop = 'digiseller';
+          }
 
           if (res.ok && data.success) {
             setOrder(data);
@@ -36,7 +44,7 @@ export function Success() {
             const existingUdid = localStorage.getItem('apple_udid');
             if (existingUdid) {
               // Если есть, сразу привязываем заказ
-              const linkRes = await fetch('https://connect-4va6.vercel.app/api/shop/ggsel/link', {
+              const linkRes = await fetch(`https://connect-4va6.vercel.app/api/shop/${shop}/link`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ uniquecode, udid: existingUdid })
@@ -50,7 +58,7 @@ export function Success() {
               }
             } else {
               // Если UDID нет, сохраняем код заказа в памяти для привязки после получения UDID
-              localStorage.setItem('pending_ggsel_order', uniquecode);
+              localStorage.setItem('pending_shop_order', JSON.stringify({ code: uniquecode, shop }));
               setLoading(false);
               return;
             }

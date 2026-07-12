@@ -31,9 +31,19 @@ export function Auth() {
           trackEvent('registrations');
           
           // Capture source and create CRM lead
-          const pendingOrder = localStorage.getItem('pending_ggsel_order');
+          const pendingOrderStr = localStorage.getItem('pending_shop_order');
+          const pendingGGSelLegacy = localStorage.getItem('pending_ggsel_order'); // fallback
           const storedSource = localStorage.getItem('bazzar_source');
-          const leadSource = pendingOrder ? 'GGsel' : (storedSource || 'Сайт');
+          let leadSource = storedSource || 'Сайт';
+          
+          if (pendingOrderStr) {
+            try {
+              const parsed = JSON.parse(pendingOrderStr);
+              leadSource = parsed.shop === 'digiseller' ? 'Digiseller' : 'GGsel';
+            } catch (e) {}
+          } else if (pendingGGSelLegacy) {
+            leadSource = 'GGsel';
+          }
 
           try {
             await fetch('/api/crm/lead', {
@@ -50,17 +60,33 @@ export function Auth() {
           }
         }
 
-        // Link pending GGsel order if exists
-        const pendingOrder = localStorage.getItem('pending_ggsel_order');
-        if (pendingOrder) {
+        // Link pending shop order if exists
+        const pendingOrderStr = localStorage.getItem('pending_shop_order');
+        const pendingGGSelLegacy = localStorage.getItem('pending_ggsel_order');
+        
+        let pendingCodeToLink = null;
+        let pendingShopToLink = 'ggsel';
+        
+        if (pendingOrderStr) {
           try {
-            await fetch('/api/ggsel/link', {
+            const parsed = JSON.parse(pendingOrderStr);
+            pendingCodeToLink = parsed.code;
+            pendingShopToLink = parsed.shop;
+          } catch (e) {}
+        } else if (pendingGGSelLegacy) {
+          pendingCodeToLink = pendingGGSelLegacy;
+        }
+
+        if (pendingCodeToLink) {
+          try {
+            await fetch(`https://connect-4va6.vercel.app/api/shop/${pendingShopToLink}/link`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ uniquecode: pendingOrder, udid })
+              body: JSON.stringify({ uniquecode: pendingCodeToLink, udid })
             });
+            localStorage.removeItem('pending_shop_order');
             localStorage.removeItem('pending_ggsel_order');
-            navigate('/success?uniquecode=' + pendingOrder, { replace: true });
+            navigate('/success?uniquecode=' + pendingCodeToLink, { replace: true });
             return;
           } catch (e) {
             console.error('Failed to link order', e);
