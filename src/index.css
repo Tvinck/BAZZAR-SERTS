@@ -320,3 +320,14 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; letter-spac
 .float-mascot {
   animation: premiumFloat 8s ease-in-out infinite;
 }
+
+/* Спиннер загрузки */
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Пульсация для скелетонов */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

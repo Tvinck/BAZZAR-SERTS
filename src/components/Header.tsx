@@ -21,7 +21,7 @@ export function Header() {
         <div className="mobile-hide" style={{ flex: 1, position: 'relative', maxWidth: 420 }}>
           <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }}><SearchIcon size={18} /></span>
           <input className="field" placeholder="Поиск (TikTok, Scarlet, Сертификаты)…" style={{ paddingLeft: 42, height: 40, borderRadius: 'var(--radius-sm)' }}
-            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/catalog') }} />
+            onKeyDown={(e) => { if (e.key === 'Enter') { const q = (e.target as HTMLInputElement).value.trim(); navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog') } }} />
         </div>
 
         {/* Навигация */}

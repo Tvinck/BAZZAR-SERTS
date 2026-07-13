@@ -32,7 +32,7 @@ export function Auth() {
           
           // Capture source and create CRM lead
           const pendingOrderStr = localStorage.getItem('pending_shop_order');
-          const pendingGGSelLegacy = localStorage.getItem('pending_ggsel_order'); // fallback
+          const pendingGGSelLegacyCRM = localStorage.getItem('pending_ggsel_order'); // fallback for CRM source detection
           const storedSource = localStorage.getItem('bazzar_source');
           let leadSource = storedSource || 'Сайт';
           
@@ -41,7 +41,7 @@ export function Auth() {
               const parsed = JSON.parse(pendingOrderStr);
               leadSource = parsed.shop === 'digiseller' ? 'Digiseller' : 'GGsel';
             } catch (e) {}
-          } else if (pendingGGSelLegacy) {
+          } else if (pendingGGSelLegacyCRM) {
             leadSource = 'GGsel';
           }
 
@@ -79,15 +79,21 @@ export function Auth() {
 
         if (pendingCodeToLink) {
           try {
-            await fetch(`https://connect-4va6.vercel.app/api/shop/${pendingShopToLink}/link`, {
+            const linkRes = await fetch(`https://connect-4va6.vercel.app/api/shop/${pendingShopToLink}/link`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ uniquecode: pendingCodeToLink, udid })
             });
-            localStorage.removeItem('pending_shop_order');
-            localStorage.removeItem('pending_ggsel_order');
-            navigate('/success?uniquecode=' + pendingCodeToLink, { replace: true });
-            return;
+            const linkData = await linkRes.json().catch(() => ({ success: false }));
+            if (linkRes.ok && linkData.success !== false) {
+              localStorage.removeItem('pending_shop_order');
+              localStorage.removeItem('pending_ggsel_order');
+              navigate('/cabinet', { replace: true });
+              return;
+            } else {
+              console.error('Link API returned error:', linkData);
+              // Don't remove pending order — user can retry from cabinet
+            }
           } catch (e) {
             console.error('Failed to link order', e);
           }

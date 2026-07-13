@@ -20,7 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
         to={`/product/${product.id}`} 
         className={`card card-hover ${product.category === 'certs' ? 'glow-violet' : product.category === 'apps' ? 'glow-cyan' : 'glow-emerald'}`}
         style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
-        onClick={() => trackEvent('add_to_cart')}
+        onClick={() => trackEvent('views')}
       >
         <div style={{ position: 'relative', height: 160, background: 'var(--bg)', borderBottom: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
           {product.image ? (
