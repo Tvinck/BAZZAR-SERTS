@@ -75,9 +75,9 @@ export function AppsPage() {
                 <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {app.description}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--hair)', paddingTop: 16, marginTop: 'auto' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-3)' }}>{formatBytes(app.size_bytes)}</span>
-                  <a href={app.ipa_url} className="button" style={{ textDecoration: 'none', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem' }} download>
+                  <a href={app.ipa_url} className="btn btn-primary" style={{ textDecoration: 'none', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem' }} download>
                     <DownloadIcon size={16} /> Скачать
                   </a>
                 </div>

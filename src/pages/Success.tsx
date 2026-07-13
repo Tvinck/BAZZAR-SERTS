@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { trackEvent } from '../lib/analytics';
-import { supabase } from '../lib/supabase';
+
 import { ShieldAlert, Lock, ShieldCheck, LifeBuoy } from 'lucide-react';
 
 export function Success() {
@@ -26,13 +26,17 @@ export function Success() {
       while (retries > 0) {
         try {
           // Запрос к бэкенду Connect для верификации
-          let res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}`);
+          let res = await fetch(`https://connect-4va6.vercel.app/api/shop/ggsel/verify?uniquecode=${uniquecode}&format=json`, {
+            headers: { 'Accept': 'application/json' }
+          });
           let data = await res.json();
           let shop = 'ggsel';
 
           // Если в GGSel заказ не найден (или вернул ошибку, но API ответил 200), пробуем Digiseller
           if (!res.ok || !data.success) {
-            res = await fetch(`https://connect-4va6.vercel.app/api/shop/digiseller/verify?uniquecode=${uniquecode}`);
+            res = await fetch(`https://connect-4va6.vercel.app/api/shop/digiseller/verify?uniquecode=${uniquecode}&format=json`, {
+              headers: { 'Accept': 'application/json' }
+            });
             data = await res.json();
             shop = 'digiseller';
           }
@@ -54,6 +58,12 @@ export function Success() {
               if (linkRes.ok && linkData.success) {
                 // Заказ привязан, перенаправляем в кабинет
                 navigate('/cabinet', { replace: true });
+                return;
+              } else {
+                // Привязка не удалась — сохраняем заказ для повторной попытки
+                localStorage.setItem('pending_shop_order', JSON.stringify({ code: uniquecode, shop }));
+                setError(linkData.error || 'Ошибка привязки заказа. Попробуйте обновить страницу.');
+                setLoading(false);
                 return;
               }
             } else {
@@ -88,7 +98,7 @@ export function Success() {
   }, [uniquecode, navigate]);
 
   const handleGetUdid = () => {
-    trackEvent('get_udid_from_success');
+    trackEvent('add_to_cart');
     window.location.href = '/api/udid/generate';
   };
 

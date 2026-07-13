@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
 import { ProductCard } from '../components/ProductCard'
 import { SearchIcon, SlidersIcon, CheckIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
@@ -7,8 +8,9 @@ import { CATEGORIES } from '../data/catalog'
 const SORTS = ['Популярные', 'Сначала дешёвые', 'Сначала дорогие', 'Высокий рейтинг']
 
 export function Catalog() {
-  const [active, setActive] = useState<string | null>(null)
-  const [q, setQ] = useState('')
+  const [searchParams] = useSearchParams()
+  const [active, setActive] = useState<string | null>(searchParams.get('category'))
+  const [q, setQ] = useState(searchParams.get('q') || '')
   const [sort, setSort] = useState(0)
   const { products, loading } = useProducts()
   const list = useMemo(() => {

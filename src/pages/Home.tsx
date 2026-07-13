@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ArrowRight, Sparkles as SparkIcon } from 'lucide-react'
 import { ProductCard } from '../components/ProductCard'
 import { BoltIcon, ShieldIcon, PercentIcon, HeadsetIcon, StarIcon, SearchIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
-import { CATEGORIES, PRODUCTS } from '../data/catalog'
+import { CATEGORIES } from '../data/catalog'
 
 const fade = {
   hidden: { opacity: 0, y: 26 },
@@ -77,7 +77,7 @@ export function Home() {
                 style={{ position: 'relative', width: '100%', maxWidth: 540 }}>
                 <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={20} /></span>
                 <input className="field" placeholder="Поиск (приложения, утилиты…)" style={{ height: 60, paddingLeft: 50, paddingRight: 110, fontSize: '1rem', background: 'var(--bg-2)' }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') navigate('/catalog') }} />
+                  onKeyDown={(e) => { if (e.key === 'Enter') { const v = (e.target as HTMLInputElement).value.trim(); navigate(v ? `/catalog?q=${encodeURIComponent(v)}` : '/catalog') } }} />
                 <button className="btn btn-primary" onClick={() => navigate('/catalog')} style={{ position: 'absolute', right: 7, top: 7, height: 46 }}>Найти</button>
               </motion.div>
 
@@ -85,7 +85,7 @@ export function Home() {
                 style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 28, width: '100%' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginRight: 8, alignSelf: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Популярное:</span>
                 {['VIP Сертификат', 'TikTok Dark', 'Scarlet', 'VK Сова'].map(t => (
-                  <Link key={t} to="/catalog" className="chip" style={{ background: 'transparent', whiteSpace: 'nowrap' }}>{t}</Link>
+                  <Link key={t} to={`/catalog?q=${encodeURIComponent(t)}`} className="chip" style={{ background: 'transparent', whiteSpace: 'nowrap' }}>{t}</Link>
                 ))}
               </motion.div>
             </div>
@@ -112,7 +112,7 @@ export function Home() {
               const Icon = CATEGORY_ICON[c.id] ?? CoinIcon
               return (
               <motion.div key={c.id} variants={fade} whileHover={{ y: -5 }}>
-                <Link to="/catalog" className="card card-hover" style={{ display: 'block', padding: 18, position: 'relative', overflow: 'hidden', minHeight: 132 }}>
+                <Link to={`/catalog?category=${c.id}`} className="card card-hover" style={{ display: 'block', padding: 18, position: 'relative', overflow: 'hidden', minHeight: 132 }}>
                   <div style={{ width: 64, height: 64, borderRadius: 15, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px rgba(0,0,0,0.4)' }}>
                     <Icon size={64} />
                   </div>

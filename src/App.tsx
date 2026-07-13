@@ -72,7 +72,7 @@ function MobileNav() {
   return (
     <div className="desktop-hide bottom-nav">
       {navItems.map(item => {
-        const isActive = pathname === item.path
+        const isActive = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path)
         return (
           <motion.button 
             key={item.path}
