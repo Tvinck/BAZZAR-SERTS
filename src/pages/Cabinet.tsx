@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { useProfile } from '../hooks/useProfile'
-import { PackageIcon, UserIcon, SettingsIcon, CheckIcon, StarIcon, ClockIcon, VerifyIcon, LogOutIcon } from '../ui/Icons'
+import { PackageIcon, UserIcon, SettingsIcon, CheckIcon, StarIcon, ClockIcon, VerifyIcon, LogOutIcon, HeadsetIcon } from '../ui/Icons'
 
 const statusMap: Record<string, { text: string; color: string; bg: string }> = {
   done: { text: 'Выдан', color: 'var(--green)', bg: 'transparent' },
@@ -14,7 +14,8 @@ const TABS = [
   { id: 'profile', label: 'Мой профиль', icon: <UserIcon size={18} /> },
   { id: 'purchases', label: 'Мои покупки', icon: <PackageIcon size={18} /> },
   { id: 'certs', label: 'Мои сертификаты', icon: <VerifyIcon size={18} /> },
-  { id: 'apps', label: 'Мои приложения', icon: <StarIcon size={18} /> }
+  { id: 'apps', label: 'Мои приложения', icon: <StarIcon size={18} /> },
+  { id: 'claims', label: 'Обратная связь', icon: <HeadsetIcon size={18} /> }
 ]
 
 export function Cabinet() {
@@ -33,7 +34,69 @@ export function Cabinet() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewStatus, setReviewStatus] = useState('')
 
-  const copyRef = () => { navigator.clipboard?.writeText('bazzar-serts.shop/r/artem'); setCopied(true); setTimeout(() => setCopied(false), 1800) }
+  // Claims & Suggestions State
+  const [tickets, setTickets] = useState<any[]>([])
+  const [loadingTickets, setLoadingTickets] = useState(false)
+  const [ticketType, setTicketType] = useState('suggestion')
+  const [ticketSubType, setTicketSubType] = useState('site')
+  const [ticketMessage, setTicketMessage] = useState('')
+  const [ticketImage, setTicketImage] = useState<File | null>(null)
+  const [ticketSubmitStatus, setTicketSubmitStatus] = useState('')
+
+  // Fetch tickets
+  useEffect(() => {
+    if (udid && tab === 'claims') {
+      loadTickets()
+    }
+  }, [udid, tab])
+
+  const loadTickets = async () => {
+    setLoadingTickets(true)
+    const { data } = await supabase.from('bazzar_tickets').select('*').eq('udid', udid).order('created_at', { ascending: false })
+    if (data) setTickets(data)
+    setLoadingTickets(false)
+  }
+
+  const submitTicket = async () => {
+    if (!ticketMessage.trim() || !udid) return
+    setTicketSubmitStatus('loading')
+
+    let imageUrl = null
+    if (ticketImage) {
+      const ext = ticketImage.name.split('.').pop()
+      const fileName = `${udid}_${Date.now()}.${ext}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('ticket_images')
+        .upload(fileName, ticketImage)
+      
+      if (!uploadError && uploadData) {
+        const { data: publicUrlData } = supabase.storage.from('ticket_images').getPublicUrl(uploadData.path)
+        imageUrl = publicUrlData.publicUrl
+      }
+    }
+
+    const { error } = await supabase.from('bazzar_tickets').insert([{
+      udid,
+      type: ticketType,
+      sub_type: ticketType === 'suggestion' ? ticketSubType : null,
+      message: ticketMessage,
+      image_url: imageUrl,
+      status: 'open',
+      created_at: new Date().toISOString()
+    }])
+
+    if (!error) {
+      setTicketSubmitStatus('success')
+      setTicketMessage('')
+      setTicketImage(null)
+      loadTickets()
+      setTimeout(() => setTicketSubmitStatus(''), 3000)
+    } else {
+      setTicketSubmitStatus('error')
+    }
+  }
+
+  const copyRef = () => { navigator.clipboard?.writeText(`bazzar-serts.shop/r/${udid ? udid.slice(-6) : 'ref'}`); setCopied(true); setTimeout(() => setCopied(false), 1800) }
 
   const handleLogout = logout
 
@@ -320,6 +383,243 @@ export function Cabinet() {
                 <div>
                   <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои приложения</h2>
                   {renderOrders(appOrders, 'Вы ещё не покупали приложения', 'apps')}
+                </div>
+              )}
+
+              {tab === 'claims' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="fade-in">
+                  <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                    <div style={{ 
+                      width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
+                      border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text)'
+                    }}>
+                      <HeadsetIcon size={28} />
+                    </div>
+                    <h2 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: 8 }}>
+                      Обратная связь
+                    </h2>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', maxWidth: 400, margin: '0 auto', lineHeight: 1.5 }}>
+                      Ваши идеи помогают нам развиваться. Сообщите об ошибке или предложите улучшение.
+                    </p>
+                  </div>
+                  
+                  <div className="card" style={{ padding: 32, background: 'linear-gradient(180deg, rgba(20,20,22,0.8) 0%, rgba(15,15,17,0.95) 100%)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: -50, right: -50, width: 150, height: 150, background: 'var(--accent)', filter: 'blur(100px)', opacity: 0.1, pointerEvents: 'none' }} />
+                    
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: 'var(--accent)' }}>✦</span> Новое обращение
+                    </h3>
+                    
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(255,255,255,0.03)', padding: 6, borderRadius: 12, border: '1px solid var(--hair)' }}>
+                      <button 
+                        onClick={() => setTicketType('suggestion')} 
+                        style={{ 
+                          flex: 1, height: 40, borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                          background: ticketType === 'suggestion' ? 'var(--text)' : 'transparent',
+                          color: ticketType === 'suggestion' ? 'var(--bg)' : 'var(--text-3)',
+                          boxShadow: ticketType === 'suggestion' ? '0 2px 10px rgba(0,0,0,0.2)' : 'none'
+                        }}
+                      >
+                        Предложение
+                      </button>
+                      <button 
+                        onClick={() => setTicketType('claim')} 
+                        style={{ 
+                          flex: 1, height: 40, borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                          background: ticketType === 'claim' ? 'var(--red)' : 'transparent',
+                          color: ticketType === 'claim' ? '#fff' : 'var(--text-3)',
+                          boxShadow: ticketType === 'claim' ? '0 2px 10px rgba(239, 68, 68, 0.3)' : 'none'
+                        }}
+                      >
+                        Претензия
+                      </button>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={ticketType}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {ticketType === 'suggestion' && (
+                          <div style={{ marginBottom: 16 }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>Тематика предложения</label>
+                            <select className="field hover-glow" value={ticketSubType} onChange={(e) => setTicketSubType(e.target.value)} style={{ width: '100%', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--hair-strong)', color: 'var(--text)' }}>
+                              <option value="site" style={{ background: '#121215' }}>По работе сайта</option>
+                              <option value="apps" style={{ background: '#121215' }}>Новые приложения</option>
+                              <option value="collab" style={{ background: '#121215' }}>Сотрудничество</option>
+                            </select>
+                          </div>
+                        )}
+
+                        <div style={{ marginBottom: 16 }}>
+                          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>
+                            {ticketType === 'claim' ? 'Опишите проблему' : 'Подробности'}
+                          </label>
+                          <textarea 
+                            className="field hover-glow" 
+                            placeholder={ticketType === 'claim' ? 'Укажите номер заказа и опишите, что случилось...' : 'Опишите вашу идею во всех деталях...'} 
+                            value={ticketMessage} 
+                            onChange={(e) => setTicketMessage(e.target.value)} 
+                            style={{ width: '100%', minHeight: 120, resize: 'vertical', lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--hair-strong)' }} 
+                          />
+                        </div>
+
+                        <div style={{ marginBottom: 24 }}>
+                          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>Прикрепленный файл (опционально)</label>
+                          <label style={{ 
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, cursor: 'pointer', 
+                            padding: '32px 16px', background: ticketImage ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.01)', 
+                            borderRadius: '12px', border: ticketImage ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed var(--hair-strong)',
+                            transition: 'all 0.2s'
+                          }}
+                          className="hover-glow"
+                          >
+                            <span style={{ fontSize: '2rem', filter: ticketImage ? 'none' : 'grayscale(1)', opacity: ticketImage ? 1 : 0.5 }}>
+                              {ticketImage ? '✅' : '📸'}
+                            </span>
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: ticketImage ? 'var(--green)' : 'var(--text)', marginBottom: 4 }}>
+                                {ticketImage ? 'Файл готов к загрузке' : 'Нажмите, чтобы загрузить скриншот'}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>
+                                {ticketImage ? ticketImage.name : 'PNG, JPG, JPEG до 5 МБ'}
+                              </div>
+                            </div>
+                            <input type="file" accept="image/*" onChange={(e) => e.target.files && setTicketImage(e.target.files[0])} style={{ display: 'none' }} />
+                          </label>
+                          
+                          {ticketImage && (
+                            <div style={{ position: 'relative', width: 'fit-content', marginTop: 16, margin: '16px auto 0' }}>
+                              <img src={URL.createObjectURL(ticketImage)} onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} style={{ maxWidth: 200, maxHeight: 150, borderRadius: 8, border: '1px solid var(--hair)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} />
+                              <button 
+                                onClick={(e) => { e.preventDefault(); setTicketImage(null); }} 
+                                style={{ 
+                                  position: 'absolute', top: -10, right: -10, background: 'var(--red)', color: '#fff', border: 'none', borderRadius: '50%', 
+                                  width: 24, height: 24, cursor: 'pointer', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  boxShadow: '0 2px 8px rgba(239, 68, 68, 0.5)'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <button 
+                          className={`btn ${ticketType === 'claim' ? 'btn-soft' : 'btn-primary'}`} 
+                          onClick={submitTicket} 
+                          disabled={ticketSubmitStatus === 'loading' || !ticketMessage.trim()} 
+                          style={{ 
+                            width: '100%', height: 48, fontSize: '0.95rem', letterSpacing: '0.02em',
+                            ...(ticketType === 'claim' && ticketMessage.trim() ? { background: 'var(--red)', color: '#fff', borderColor: 'var(--red)' } : {})
+                          }}
+                        >
+                          {ticketSubmitStatus === 'loading' ? 'Отправка...' : ticketSubmitStatus === 'success' ? 'Успешно отправлено!' : 'Отправить'}
+                        </button>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                      <h3 style={{ fontSize: '1.25rem', margin: 0 }}>История обращений</h3>
+                      <div style={{ height: 1, background: 'var(--hair)', flex: 1 }} />
+                    </div>
+
+                    {loadingTickets ? (
+                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
+                        <div className="spinner" style={{ margin: '0 auto 16px', width: 24, height: 24, border: '2px solid var(--hair)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        Загрузка...
+                      </div>
+                    ) : tickets.length === 0 ? (
+                      <div style={{ padding: '48px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: 16, border: '1px dashed var(--hair)' }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
+                          <CheckIcon size={24} />
+                        </div>
+                        <div style={{ color: 'var(--text-2)', fontSize: '0.95rem', fontWeight: 600 }}>Все чисто!</div>
+                        <div style={{ color: 'var(--text-3)', fontSize: '0.85rem', marginTop: 4 }}>У вас пока нет активных обращений</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {tickets.map((t, idx) => (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            key={t.id} 
+                            className="card" 
+                            style={{ 
+                              padding: 24, 
+                              display: 'flex', 
+                              flexDirection: 'column', 
+                              gap: 16,
+                              background: 'linear-gradient(to bottom, rgba(255,255,255,0.02), transparent)',
+                              border: t.type === 'claim' ? '1px solid rgba(239, 68, 68, 0.1)' : '1px solid var(--hair-strong)'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span className="badge" style={{ 
+                                  background: t.type === 'claim' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)',
+                                  color: t.type === 'claim' ? '#f87171' : 'var(--text)',
+                                  border: t.type === 'claim' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--hair)',
+                                  padding: '4px 10px', fontSize: '0.75rem'
+                                }}>
+                                  {t.type === 'claim' ? 'Претензия' : t.sub_type === 'site' ? 'Предложение по сайту' : t.sub_type === 'apps' ? 'Предложение по приложениям' : 'Сотрудничество'}
+                                </span>
+                                {t.status === 'open' && !t.admin_reply ? (
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)' }} /> В обработке
+                                  </span>
+                                ) : t.admin_reply ? (
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} /> Ответ получен
+                                  </span>
+                                ) : null}
+                              </div>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
+                                {new Date(t.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            
+                            <p style={{ fontSize: '0.95rem', color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, margin: 0 }}>
+                              {t.message}
+                            </p>
+                            
+                            {t.image_url && (
+                              <div style={{ marginTop: 4 }}>
+                                <a href={t.image_url} target="_blank" rel="noreferrer" style={{ display: 'inline-block', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--hair)' }}>
+                                  <img src={t.image_url} alt="Скриншот" style={{ display: 'block', maxWidth: '100%', maxHeight: 120, objectFit: 'cover' }} />
+                                </a>
+                              </div>
+                            )}
+
+                            {t.admin_reply && (
+                              <div style={{ 
+                                marginTop: 8, 
+                                background: 'rgba(16, 185, 129, 0.05)', 
+                                border: '1px solid rgba(16, 185, 129, 0.2)', 
+                                padding: '16px', 
+                                borderRadius: 12,
+                                position: 'relative'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}>
+                                    <CheckIcon size={12} />
+                                  </div>
+                                  <strong style={{ fontSize: '0.8rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ответ поддержки</strong>
+                                </div>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.5, margin: 0 }}>{t.admin_reply}</p>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

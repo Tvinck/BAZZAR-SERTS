@@ -61,15 +61,15 @@ export function Auth() {
         }
 
         // Link pending shop order if exists
-        const pendingOrderStr = localStorage.getItem('pending_shop_order');
-        const pendingGGSelLegacy = localStorage.getItem('pending_ggsel_order');
+        const pendingOrder = localStorage.getItem('pending_shop_order');
+        const pendingGGSelLegacy = localStorage.getItem('pending_ggsel_order'); // Legacy fallback — no longer written but may exist from older sessions
         
         let pendingCodeToLink = null;
         let pendingShopToLink = 'ggsel';
         
-        if (pendingOrderStr) {
+        if (pendingOrder) {
           try {
-            const parsed = JSON.parse(pendingOrderStr);
+            const parsed = JSON.parse(pendingOrder);
             pendingCodeToLink = parsed.code;
             pendingShopToLink = parsed.shop;
           } catch (e) {}

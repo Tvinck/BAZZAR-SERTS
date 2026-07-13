@@ -5,10 +5,16 @@ import { motion } from 'framer-motion'
 import { StarIcon, ShieldIcon, CheckIcon, VerifyIcon } from '../ui/Icons'
 import { LegalModal, LegalType } from '../components/LegalModal'
 
+const getRelativeDate = (daysAgo: number) => {
+  if (daysAgo === 0) return 'Сегодня';
+  if (daysAgo === 1) return 'Вчера';
+  return `${daysAgo} дня назад`;
+};
+
 const REVIEWS = [
-  { id: 1, name: 'Алексей С.', text: 'Сертификат пришел моментально! Установил TikTok, все работает отлично, спасибо.', rating: 5, date: 'Сегодня' },
-  { id: 2, name: 'Максим', text: 'Покупаю VIP уже второй раз. Первый отработал год без слетов. Очень доволен сервисом.', rating: 5, date: 'Вчера' },
-  { id: 3, name: 'Даня', text: 'Сначала сомневался, но поддержка все объяснила. Установил Scarlet и Сбербанк. Топ!', rating: 5, date: '2 дня назад' }
+  { id: 1, name: 'Алексей С.', text: 'Сертификат пришел моментально! Установил TikTok, все работает отлично, спасибо.', rating: 5, date: getRelativeDate(0) },
+  { id: 2, name: 'Максим', text: 'Покупаю VIP уже второй раз. Первый отработал год без слетов. Очень доволен сервисом.', rating: 5, date: getRelativeDate(1) },
+  { id: 3, name: 'Даня', text: 'Сначала сомневался, но поддержка все объяснила. Установил Scarlet и Сбербанк. Топ!', rating: 5, date: getRelativeDate(2) }
 ]
 
 export function Product() {
@@ -64,7 +70,13 @@ export function Product() {
     : Math.round(unit * (1 + (selectedDenom.discount || 0)/100))
 
   const handleBuy = () => {
-    window.location.href = 'https://ggsel.net/catalog/product/sertifikat-razrabotcika-apple-esign-102490839'
+    // Сохраняем контакт и промокод для привязки после оплаты
+    if (contact.trim()) localStorage.setItem('bazzar_contact', contact.trim());
+    if (promo.trim()) localStorage.setItem('bazzar_promo', promo.trim());
+    
+    // Динамическая ссылка покупки: из БД, или fallback
+    const buyUrl = product.ggsel_url || 'https://ggsel.net/catalog/product/sertifikat-razrabotcika-apple-esign-102490839'
+    window.location.href = buyUrl
   }
 
   return (
