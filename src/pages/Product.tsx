@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { motion } from 'framer-motion'
@@ -50,7 +50,6 @@ export function Product() {
 
   const [denom, setDenom] = useState(0)
   const [contact, setContact] = useState('')
-  const [isContactValid, setIsContactValid] = useState(false)
   const [promo, setPromo] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('ggsel')
   const [legalModal, setLegalModal] = useState<LegalType>(null)
@@ -166,14 +165,14 @@ export function Product() {
                         </div>
                         {isCert && (
                           <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, display: 'inline-block', background: 'rgba(251, 191, 36, 0.1)', padding: '2px 6px', borderRadius: 6 }}>
-                            + Гарантия {d.warranty}
+                            + Гарантия {(d as any).warranty}
                           </div>
                         )}
                       </div>
                       
                       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '1.3rem', fontWeight: 800, color: isSelected ? 'var(--lime)' : 'var(--text)' }}>
-                          {isCert ? d.price : Math.round(product.price * (d.mult || 1))} ₽
+                          {isCert ? (d as any).price : Math.round(product.price * ((d as any).mult || 1))} ₽
                         </span>
                         {d.discount && (
                           <span style={{ background: 'var(--red)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '2px 4px', borderRadius: 4, marginBottom: 3 }}>
