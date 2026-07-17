@@ -1,0 +1,116 @@
+﻿{
+    "API_SP":  "https://www.my.rzd.ru",
+    "API":  "https://my.rzd.ru",
+    "AUTH":  "https://my.rzd.ru/api/auth",
+    "underConstructionPages":  [
+                                   "DIGITAL_SIGN_REQUEST_1",
+                                   "DISABILITY_CERTIFICATE_1",
+                                   "help",
+                                   "contact",
+                                   "mobile-apps",
+                                   "ask-question",
+                                   "educationDirectUrlAvailable",
+                                   "REMOTE_WORK_CONDITION",
+                                   "rest-children",
+                                   "ECDO_CANCEL_1",
+                                   "EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_2",
+                                   "corpUniversity",
+                                   "ADVANCE_PAYMENT_OF_TRAVEL_EXPENSES_2",
+                                   "concession-calc"
+                               ],
+    "TIME_FOR_INACTIVITY":  900000,
+    "crImportantToKnowUrl":  "https://my.rzd.ru/blog/category/d0259f70-b665-48eb-8281-aacc5f5589e0",
+    "isOldBannerSystem":  false,
+    "covidUrl":  "https://ÑÑÐ¾Ð¿ÐºÐ¾ÑÐ¾Ð½Ð°Ð²Ð¸ÑÑÑ.ÑÑ/",
+    "corpUniversityUrl":  "https://universitetrzd.ru/",
+    "corpUniversityKnowledgeUrl":  "https://universitetrzd.ru/znanija-live/",
+    "openKnowledgeUrl":  "https://newsdo.rzd.ru/search/?type=webinar\u0026search=ÐÐ½Ð°Ð½Ð¸Ñ",
+    "corpUniversityProfileUrl":  "https://lk.curzd.ru/",
+    "educationId":  54,
+    "medicineUrl":  "https://www.rzd-medicine.ru",
+    "libraryUrl":  "https://api5.alpinadigital.ru/api/v2/offers/195/sso/auth",
+    "isInternet":  true,
+    "authHelpUrl":  "http://vc.rzd/",
+    "corpUniversity":  "http://universitetrzd.ru/#box-tile",
+    "refreshTokenSeconds":  60,
+    "refreshPageOnTechnicalWork":  60,
+    "refreshCloudEkdoCertList":  10,
+    "notificationsIntervalSeconds":  180,
+    "checkTokenStatusMyIncome":  5,
+    "loginTimeout":  15,
+    "hiddenSocials":  [
+                          "facebook",
+                          "instagram"
+                      ],
+    "npfUrl":  "https://online.npfb.ru/public/npfpa/rest/auth-int/redirectURL",
+    "rpzCardUrl":  "https://rpz-card.ru/lk",
+    "benefitComponentUrl":  "/benefit/main.js",
+    "mentorComponentUrl":  "/mentor/main.js",
+    "educationUrl":  "https://sdo.rzd.ru/lms/service/v1/jwtauthcode",
+    "covidSdoUrl":  "https://sdo.rzd.ru/lms/service/v1/jwtauthcode",
+    "ecdoInstructionUrl":  "https://sdo.rzd.ru/lms/#\u0026step=1\u0026name=Ð Ð°Ð±Ð¾ÑÐ°+Ñ+Ð´Ð¾ÐºÑÐ¼ÐµÐ½ÑÐ°Ð¼Ð¸\u0026doaction=Go\u0026s=jmeXqhqInFHrtr2NCrHK\u0026id=193863\u0026type=mediapreview",
+    "appointmentForRzdEmployeeUrl":  "https://www.rzd-medicine.ru/zapis_na_priem_vrachu_dlya_sotrudnikov_companii",
+    "privilegeUrl":  "https://mp.rzd.ru/",
+    "privilegeUrlInternal":  "https://mp.rzd/",
+    "pressUrl":  "https://gudok.ru",
+    "pulseUrl":  "https://pulse.mp.rzd.ru/",
+    "RESOURCES":  "https://my.rzd.ru/resources",
+    "companyUrl":  "https://company.rzd.ru",
+    "workEmailDomains":  [
+                             "rzd",
+                             "RZD"
+                         ],
+    "esiaUrl":  "https://esia.gosuslugi.ru",
+    "mentorBlogId":  "34a14b23-515f-4316-bd06-e1efdd102d57",
+    "hallOfFameListCounterAfter":  6,
+    "spdTemplates":  {
+                         "internetHost":  "https://my.rzd.ru",
+                         "spdHost":  "https://my.rzd",
+                         "spdMask":  "https://(www\\.)?my\\.rzd/",
+                         "internetMask":  "https://(www\\.)?my\\.rzd\\.ru/"
+                     },
+    "documents":  {
+                      "pdfShowPreviewModal":  false
+                  },
+    "authBackSystem":  [
+                           {
+                               "id":  "SDO_new",
+                               "url":  "https://sdo.rzd.ru/lms/service/v1/jwtauthcode"
+                           },
+                           {
+                               "id":  "mp-prod",
+                               "url":  "https://mp.rzd.ru/api/auth-int/redirectURL"
+                           },
+                           {
+                               "id":  "infoclinica-rzd",
+                               "url":  "https://lk.rzd-medicine.ru/oauth2/sso/rzd/auth"
+                           },
+                           {
+                               "id":  "SDO_core",
+                               "url":  "https://znaniya.rzd.ru/auth/service_portal/callback"
+                           },
+                           {
+                               "id":  "nav-bez",
+                               "url":  "https://secure-cloud.rzd.ru/auth/realms/EXO-OUT/api/auth-int/redirectUrl"
+                           }
+                       ],
+    "theme":  {
+                  "customMenuEnabled":  true,
+                  "fileName":  "Classic.svg",
+                  "customTitle":  "                  ",
+                  "customMenuBgColor":  "#223E55"
+              },
+    "antiCorruption":  {
+                           "PORTAL_URL":  "https://rzd-odit.msk.oao.rzd/portal/anticorrup/home",
+                           "DEKLARANT_URL":  "http://as-deklarant.svrw.oao.rzd/web/login",
+                           "FEEDBACK_INTERNET_URL":  "https://company.rzd.ru/ru/9349/page/105554?id=675#6037",
+                           "FEEDBACK_INTRANET_URL":  "https://company.web.rzd/ru/9349/page/105554?id=675#6037",
+                           "REGULATIONS_INTERNET_URL":  "https://company.rzd.ru/ru/9349/page/105554?id=675#5954",
+                           "REGULATIONS_INTRANET_URL":  "https://company.web.rzd/ru/9349/page/105554?id=675#5954",
+                           "RESPONSIBILITIES_INTERNET_URL":  "https://company.rzd.ru/dbmm/download?vp=1\u0026load=y\u0026col_id=15636\u0026id=4630",
+                           "RESPONSIBILITIES_INTRANET_URL":  "https://company.web.rzd/dbmm/download?vp=1\u0026load=y\u0026col_id=15636\u0026id=4630"
+                       },
+    "showHallOfFameInfo":  false,
+    "medicineUrlMain":  "https://www.rzd-medicine.ru",
+    "businessTripsUrl":  "https://podelam.smarttravel.ru"
+}

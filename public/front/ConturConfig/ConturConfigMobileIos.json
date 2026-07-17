@@ -1,0 +1,21 @@
+﻿{
+    "underConstructionPages":  [
+                                   "ADDITIONAL_PAID_VACATION_1",
+                                   "DAY_OFF_WORK_1",
+                                   "MEDICAL_EXAMINATION_2",
+                                   "EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_2",
+                                   "DISABILITY_CERTIFICATE_1",
+                                   "help",
+                                   "contact",
+                                   "mobile-apps",
+                                   "education",
+                                   "REMOTE_WORK_CONDITION",
+                                   "ADVANCE_PAYMENT_OF_TRAVEL_EXPENSES_2",
+                                   "REMOTE_WORK_1",
+                                   "ECDO_CANCEL_1",
+                                   "EARLY_EXIT_FROM_PARENTAL_LEAVE_UNTIL_CHILD_REACH_AGE_3_YEARS_1",
+                                   "tutorship"
+                               ],
+    "updateMobileApp":  false,
+    "updateMobileIOS":  false
+}

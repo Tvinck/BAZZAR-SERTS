@@ -1,0 +1,104 @@
+﻿{
+    "API_SP":  "https://www.my.rzd.ru",
+    "API":  "https://my.rzd.ru",
+    "AUTH":  "https://my.rzd.ru/api/auth",
+    "DOWNLOAD_APP_URL":  "",
+    "RESOURCES":  "https://my.rzd.ru/resources",
+    "underConstructionPages":  [
+                                   "EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_2",
+                                   "DISABILITY_CERTIFICATE_1",
+                                   "help",
+                                   "contact",
+                                   "mobile-apps",
+                                   "education",
+                                   "REMOTE_WORK_CONDITION",
+                                   "ADVANCE_PAYMENT_OF_TRAVEL_EXPENSES_2",
+                                   "REMOTE_WORK_1",
+                                   "ECDO_CANCEL_1",
+                                   "EARLY_EXIT_FROM_PARENTAL_LEAVE_UNTIL_CHILD_REACH_AGE_3_YEARS_1",
+                                   "tutorship"
+                               ],
+    "TIME_FOR_INACTIVITY":  2000000000,
+    "isInternet":  true,
+    "educationUrl":  "https://sdo.rzd.ru/lms/service/v1/jwtauthcode",
+    "covidUrl":  "https://ÑÑÐ¾Ð¿ÐºÐ¾ÑÐ¾Ð½Ð°Ð²Ð¸ÑÑÑ.ÑÑ/",
+    "corpUniversityUrl":  "https://universitetrzd.ru/",
+    "corpUniversityKnowledgeUrl":  "https://universitetrzd.ru/znanija-live/",
+    "openKnowledgeUrl":  "https://newsdo.rzd.ru/search/?type=webinar\u0026search=ÐÐ½Ð°Ð½Ð¸Ñ",
+    "corpUniversityProfileUrl":  "https://lk.curzd.ru/",
+    "pressUrl":  "https://gudok.ru",
+    "privilegeUrl":  "https://mp.rzd.ru/",
+    "companyUrl":  "https://company.rzd.ru/",
+    "covidSdoUrl":  "https://sdo.rzd.ru/lms/service/v1/jwtauthcode",
+    "libraryUrl":  "https://api5.alpinadigital.ru/api/v2/offers/195/sso/auth",
+    "medicineUrl":  "https://www.rzd-medicine.ru",
+    "refreshTokenSeconds":  60,
+    "refreshPageOnTechnicalWork":  60,
+    "notificationsIntervalSeconds":  90,
+    "delayBeforeSendingCertificateListRequest":  10000,
+    "secondLoginRefetchInterval":  5000,
+    "loginTimeout":  15,
+    "npfUrl":  "https://online.npfb.ru/public/npfpa/rest/auth-int/redirectURL",
+    "crImportantToKnowUrl":  "https://my.rzd.ru/blog/category/d0259f70-b665-48eb-8281-aacc5f5589e0",
+    "hiddenSocials":  [
+                          "facebook",
+                          "instagram"
+                      ],
+    "volunteeringLink":  "/blog/category/53baf7a8-ab61-47ac-9af2-01a124f3dea3",
+    "socialSphereLink":  "/blog/category/3301081d-da7e-49ad-aeeb-7f5eb73bba24",
+    "housingPolicyLink":  "/blog/category/186793e9-eedc-41b9-83a7-19da9016abb6",
+    "guideLink":  "/blog/category/d4a8d26f-3edb-445c-a97e-67d148e4af80",
+    "mobilePhonesInCampLink":  "/blog/article/9f607711-dfd8-4bb4-903f-5b0af72c48b2",
+    "childAskReactionLink":  "/blog/article/fa65ccc9-200b-43d3-8e0b-f1c73f162e03",
+    "packingSuitcaseLink":  "/blog/article/950c587f-407b-4954-b8e9-915802897b73",
+    "helpChildAdaptationLink":  "/blog/article/de211f7f-0bc1-4aa0-8f4d-4074aba06115",
+    "appointmentForRzdEmployeeUrl":  "https://www.rzd-medicine.ru/zapis_na_priem_vrachu_dlya_sotrudnikov_companii",
+    "restAndHealthLink":  "/blog/category/d0259f70-b665-48eb-8281-aacc5f5589e0",
+    "updateMobileApp":  false,
+    "isAccessAppointment":  false,
+    "achievementsIconPng":  true,
+    "showHallOfFameInfo":  false,
+    "persDataFileName":  "PD.pdf",
+    "dobroUrl":  "https://Dobro.ru/rzd",
+    "pochetUrl":  "https://pochet.ru/",
+    "debugOption":  {
+                        "enabled":  true,
+                        "delayLongPress":  3000,
+                        "email":  "IVCR-Ninagljadnov@kbsh.rzd",
+                        "subject":  "ÐÑÑÐµÑ Ð¾ ÑÐ°Ð±Ð¾ÑÐµ Ð¼Ð¾Ð±Ð¸Ð»ÑÐ½Ð¾Ð³Ð¾ Ð¿ÑÐ¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð¡Ð Ð ÐÐ",
+                        "message":  "ÐÐ¾Ð´ÑÐ¾Ð±Ð½Ð¾ÑÑÐ¸ Ð² log ÑÐ°Ð¹Ð»Ðµ."
+                    },
+    "housingProgramsRzdUrl":  "https://social.rzd.ru/ru/9863/page/103290?id=17959#main-header",
+    "preferentialMortgageOtherProgramLink":  "/blog/category/186793e9-eedc-41b9-83a7-19da9016abb6",
+    "documents":  {
+                      "pdfShowPreviewModal":  true
+                  },
+    "authBackSystem":  [
+                           {
+                               "id":  "nav-bez",
+                               "url":  "https://secure-cloud.rzd.ru/auth/realms/EXO-OUT/api/auth-int/redirectUrl"
+                           },
+                           {
+                               "id":  "mp-prod",
+                               "url":  "https://mp.rzd.ru/api/auth-int/redirectURL"
+                           },
+                           {
+                               "id":  "SDO_core",
+                               "url":  "https://znaniya.rzd.ru/auth/service_portal/callback"
+                           },
+                           {
+                               "id":  "infoclinica-rzd",
+                               "url":  "https://lk.rzd-medicine.ru/oauth2/sso/rzd/auth"
+                           }
+                       ],
+    "pulseUrl":  "https://pulse.mp.rzd.ru/",
+    "gosuslugiUrl":  "https://www.gosuslugi.ru/",
+    "ecdoDocs":  {
+                     "EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_3":  {
+                                                                                            "regulations":  [
+                                                                                                                "ECDO_EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_3_1_pdf",
+                                                                                                                "ECDO_EXTRA_PAID_WEEKEND_FOR_CARING_FOR_CHILDREN_WITH_DISABILITIES_3_2_pdf"
+                                                                                                            ]
+                                                                                        }
+                 }
+}
