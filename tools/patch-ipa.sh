@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
-# patch-ipa.sh — Extract IPA, inject BazzarSerts.dylib, repackage
-# Usage: ./patch-ipa.sh <input.ipa> <BazzarSerts.dylib> <insert_dylib_bin>
+# patch-ipa.sh — Extract IPA, inject BazzarSerts.dylib via optool, repackage
+# Usage: ./patch-ipa.sh <input.ipa> <BazzarSerts.dylib> [output_dir]
 #
-# Outputs: <AppName>_byBazzarSerts.ipa in the current directory.
+# Outputs: <AppName>_byBazzarSerts.ipa in output_dir (or current dir).
 
 set -euo pipefail
 
 IPA_PATH="$1"
 DYLIB_PATH="$2"
-INSERT_DYLIB="$3"
+OUT_DIR="${3:-.}"
 
 IPA_NAME=$(basename "$IPA_PATH" .ipa)
 WORK_DIR=$(mktemp -d)
-OUT_DIR="${4:-.}"
 
 echo "=== Patching: $IPA_NAME ==="
 echo "    Work dir: $WORK_DIR"
@@ -44,12 +43,9 @@ echo "    Executable: $EXEC_NAME"
 echo "[2/5] Copying BazzarSerts.dylib..."
 cp "$DYLIB_PATH" "$APP_DIR/BazzarSerts.dylib"
 
-# 5. Inject load command
-echo "[3/5] Injecting load command..."
-"$INSERT_DYLIB" --strip-codesig --all-yes \
-    "@executable_path/BazzarSerts.dylib" \
-    "$EXEC_PATH" \
-    "$EXEC_PATH"
+# 5. Inject load command via optool
+echo "[3/5] Injecting load command via optool..."
+optool install -c load -p "@executable_path/BazzarSerts.dylib" -t "$EXEC_PATH"
 
 # 6. Remove code signatures (will be re-signed by user's cert)
 echo "[4/5] Stripping code signatures..."

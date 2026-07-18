@@ -30,20 +30,21 @@ jobs:
           file BazzarSerts.dylib
           echo "✅ Dylib compiled"
 
-      # ── Build insert_dylib tool ─────────────────────────
-      - name: Build insert_dylib
+      # ── Install optool ─────────────────────────────────
+      - name: Install optool
         run: |
-          git clone https://github.com/niceprompt/insert_dylib.git /tmp/insert_dylib
-          cd /tmp/insert_dylib
-          xcodebuild -project insert_dylib.xcodeproj \
-                     -target insert_dylib \
-                     -configuration Release \
-                     ONLY_ACTIVE_ARCH=NO \
-                     BUILD_DIR=/tmp/insert_dylib_build \
-                     2>/dev/null | tail -5
-          cp /tmp/insert_dylib_build/Release/insert_dylib /usr/local/bin/insert_dylib
-          chmod +x /usr/local/bin/insert_dylib
-          echo "✅ insert_dylib built"
+          brew install optool 2>/dev/null || {
+            # Fallback: build from source
+            git clone --recursive https://github.com/alexzielenski/optool.git /tmp/optool
+            cd /tmp/optool
+            xcodebuild -project optool.xcodeproj \
+                       -scheme optool \
+                       -configuration Release \
+                       SYMROOT=/tmp/optool_build \
+                       2>/dev/null | tail -5
+            cp /tmp/optool_build/Release/optool /usr/local/bin/optool
+          }
+          which optool && echo "✅ optool ready" || echo "❌ optool not found"
 
       # ── Download original IPAs from Release ─────────────
       - name: Download IPAs from Release
@@ -74,7 +75,7 @@ jobs:
           chmod +x tools/patch-ipa.sh
           for ipa in originals/*.ipa; do
             [ -f "$ipa" ] || continue
-            bash tools/patch-ipa.sh "$ipa" BazzarSerts.dylib /usr/local/bin/insert_dylib patched
+            bash tools/patch-ipa.sh "$ipa" BazzarSerts.dylib patched
           done
           echo ""
           echo "=== All patched IPAs ==="
