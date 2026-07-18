@@ -9,6 +9,7 @@ import { Catalog } from './pages/Catalog'
 import { Product } from './pages/Product'
 import { Cabinet } from './pages/Cabinet'
 import { Auth } from './pages/Auth'
+import { Registration } from './pages/Registration'
 import { Success } from './pages/Success'
 import { NotFound } from './pages/NotFound'
 import { AppsPage } from './pages/AppsPage'
@@ -106,6 +107,7 @@ export default function App() {
               <Route path="/cabinet" element={<Cabinet />} />
               <Route path="/apps" element={<AppsPage />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/r/:code" element={<Registration />} />
               <Route path="/success" element={<Success />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

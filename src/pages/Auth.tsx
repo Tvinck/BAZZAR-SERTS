@@ -17,7 +17,25 @@ export function Auth() {
         if (model) {
           localStorage.setItem('apple_device_model', model);
         }
-        
+
+        // Manual-registration flow (Авито): привязываем UDID к заявке и возвращаемся
+        // на страницу /r/:code для шага оплаты. Имеет приоритет над обычным флоу.
+        const pendingReg = localStorage.getItem('pending_registration_code');
+        if (pendingReg) {
+          try {
+            await fetch('https://connect-4va6.vercel.app/api/registration/link-udid', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: pendingReg, udid, model }),
+            });
+          } catch (e) {
+            console.error('Failed to link registration udid', e);
+          }
+          localStorage.removeItem('pending_registration_code');
+          navigate(`/r/${pendingReg}`, { replace: true });
+          return;
+        }
+
         // Check if user exists in Supabase
         const { data, error } = await supabase.from('bazzar_users').select('udid').eq('udid', udid).maybeSingle();
         

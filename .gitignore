@@ -5,3 +5,4 @@ dist-ssr
 .env*
 !.env.example
 .DS_Store
+app_serts/

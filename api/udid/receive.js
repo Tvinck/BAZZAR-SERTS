@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     const redirectUrl = `${marketUrl}/auth?udid=${encodeURIComponent(udid)}&model=${encodeURIComponent(product || '')}`;
 
     // 301 Redirect to the Auth page
-    res.writeHead(301, { Location: redirectUrl });
+    res.writeHead(302, { Location: redirectUrl });
     res.end();
 
   } catch (error) {
