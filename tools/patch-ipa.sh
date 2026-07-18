@@ -6,9 +6,11 @@
 
 set -euo pipefail
 
-IPA_PATH="$1"
-DYLIB_PATH="$2"
+IPA_PATH="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+DYLIB_PATH="$(cd "$(dirname "$2")" && pwd)/$(basename "$2")"
 OUT_DIR="${3:-.}"
+mkdir -p "$OUT_DIR"
+OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 
 IPA_NAME=$(basename "$IPA_PATH" .ipa)
 WORK_DIR=$(mktemp -d)
