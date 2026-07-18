@@ -51,12 +51,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p originals patched
-          echo "Downloading IPAs from release: ${{ inputs.release_tag }}"
+          echo "Downloading files from release: ${{ inputs.release_tag }}"
           gh release download "${{ inputs.release_tag }}" \
             --pattern "*.ipa" \
             --dir originals/ \
-            --repo "${{ github.repository }}"
-          echo "Downloaded IPAs:"
+            --repo "${{ github.repository }}" 2>/dev/null || true
+          gh release download "${{ inputs.release_tag }}" \
+            --pattern "*.zip" \
+            --dir originals/ \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+          # Rename .zip to .ipa
+          for f in originals/*.zip; do
+            [ -f "$f" ] || continue
+            mv "$f" "${f%.zip}.ipa"
+          done
+          echo "IPAs ready:"
           ls -lh originals/
 
       # ── Patch each IPA ──────────────────────────────────
