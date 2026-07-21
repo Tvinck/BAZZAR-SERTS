@@ -6,6 +6,7 @@ import type { Product } from '../types'
 import { useI18n } from '../hooks/useI18n'
 import { useOwnedApps } from '../hooks/useOwnedApps'
 import { installTarget } from '../lib/appInstall'
+import { supabase } from '../lib/supabase'
 
 const API_BASE = 'https://connect-4va6.vercel.app'
 
@@ -37,14 +38,26 @@ export function ProductCard({ product, index = 0, autoStart = false }: Props) {
   }, [autoStart])
 
   // Бесплатное — фиксируем установку в кабинете (в фоне)
-  const recordFree = () => {
+  const recordFree = async () => {
     const uid = localStorage.getItem('apple_udid')
     if (!uid || isPaid) return
-    fetch(`${API_BASE}/api/shop/app-purchase`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appId: product.id, udid: uid }),
-    }).catch(() => {})
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/app-purchase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appId: product.id, udid: uid }),
+      })
+      if (!res.ok) throw new Error('API unavailable')
+    } catch {
+      // Fallback: record directly in Supabase
+      await supabase.from('user_app_purchases').upsert({
+        udid: uid,
+        app_id: product.id,
+        status: 'free',
+        amount: 0,
+        order_code: `app_free_${Date.now()}`,
+      }, { onConflict: 'udid,app_id' }).then(() => {})
+    }
   }
 
   // ── Purchase / Install handler ──
@@ -71,6 +84,26 @@ export function ProductCard({ product, index = 0, autoStart = false }: Props) {
           email: email.trim() || undefined,
         }),
       })
+
+      // If Connect API is down (404/500), fallback for free apps
+      if (!res.ok) {
+        if (!isPaid) {
+          // Free app — record directly in Supabase
+          await supabase.from('user_app_purchases').upsert({
+            udid,
+            app_id: product.id,
+            status: 'free',
+            amount: 0,
+            order_code: `app_free_${Date.now()}`,
+          }, { onConflict: 'udid,app_id' })
+          setBought(true)
+          markOwned(product.id)
+          return
+        }
+        alert('Сервис оплаты временно недоступен. Попробуйте позже.')
+        return
+      }
+
       const json = await res.json()
 
       if (json.alreadyOwned || json.free) {
@@ -87,6 +120,22 @@ export function ProductCard({ product, index = 0, autoStart = false }: Props) {
 
       alert(json.error || 'Ошибка. Попробуйте позже.')
     } catch {
+      // Network error — fallback for free apps
+      if (!isPaid) {
+        const uid = localStorage.getItem('apple_udid')
+        if (uid) {
+          await supabase.from('user_app_purchases').upsert({
+            udid: uid,
+            app_id: product.id,
+            status: 'free',
+            amount: 0,
+            order_code: `app_free_${Date.now()}`,
+          }, { onConflict: 'udid,app_id' })
+          setBought(true)
+          markOwned(product.id)
+          return
+        }
+      }
       alert('Ошибка сети. Попробуйте позже.')
     } finally {
       setBuying(false)
