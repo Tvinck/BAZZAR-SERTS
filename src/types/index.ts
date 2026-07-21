@@ -68,6 +68,10 @@ export interface UserProfile {
   last_purchase: string | null;
   /** Дата создания профиля (регистрации устройства) */
   created_at: string;
+  /** Telegram-контакт клиента, если указан */
+  telegram?: string | null;
+  /** Отображаемое имя клиента, если задано */
+  name?: string | null;
 }
 
 /**

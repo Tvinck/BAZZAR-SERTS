@@ -1,103 +1,152 @@
 import { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Search, SlidersHorizontal, SearchX } from 'lucide-react'
 import { useProducts } from '../hooks/useProducts'
 import { ProductCard } from '../components/ProductCard'
-import { SearchIcon, SlidersIcon, CheckIcon, CoinIcon, CATEGORY_ICON } from '../ui/Icons'
-import { CATEGORIES } from '../data/catalog'
+import { SkeletonCard } from '../components/Skeleton'
+import { usePageTitle } from '../hooks/usePageTitle'
+import { useI18n } from '../hooks/useI18n'
 
-const SORTS = ['Популярные', 'Сначала дешёвые', 'Сначала дорогие', 'Высокий рейтинг']
+/* ═══════════════════════════════════════════════════════════
+   Catalog — Чистая страница каталога (стиль Игромир)
+   ═══════════════════════════════════════════════════════════ */
+
 
 export function Catalog() {
-  const [searchParams] = useSearchParams()
-  const [active, setActive] = useState<string | null>(searchParams.get('category'))
-  const [q, setQ] = useState(searchParams.get('q') || '')
-  const [sort, setSort] = useState(0)
+  const { t } = useI18n()
+  usePageTitle(t('catalog.title'))
   const { products, loading } = useProducts()
-  const list = useMemo(() => {
-    let r = products.filter(p =>
-      (!active || p.category === active) &&
-      (!q || (p.title + (p.subtitle || '')).toLowerCase().includes(q.toLowerCase()))
-    )
-    if (sort === 0) r = [...r].sort((a, b) => b.sold - a.sold)
-    if (sort === 1) r = [...r].sort((a, b) => a.price - b.price)
-    if (sort === 2) r = [...r].sort((a, b) => b.price - a.price)
-    if (sort === 3) r = [...r].sort((a, b) => b.rating - a.rating)
-    return r
-  }, [active, q, sort, products])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [category, setCategory] = useState(searchParams.get('category') || 'all')
+  const buyId = searchParams.get('buy') // возврат после регистрации → открыть оплату приложения
+
+  const CATS = [
+    { id: 'all', label: t('cat.all') },
+    { id: 'certs', label: t('cat.certs') },
+    { id: 'apps', label: t('cat.apps') },
+    { id: 'utils', label: t('cat.utils') },
+    { id: 'free', label: t('cat.free') },
+  ]
+
+  const SORTS = [t('catalog.sort.popular'), t('catalog.sort.priceUp'), t('catalog.sort.priceDown'), t('catalog.sort.rating')]
+  const [sortBy, setSortBy] = useState(SORTS[0])
+
+  const filtered = useMemo(() => {
+    let result = [...products]
+
+    if (query) result = result.filter(p => p.title.toLowerCase().includes(query.toLowerCase()) || p.subtitle.toLowerCase().includes(query.toLowerCase()))
+    if (category === 'free') result = result.filter(p => p.price === 0)
+    else if (category !== 'all') result = result.filter(p => p.category === category)
+
+    switch (sortBy) {
+      case t('catalog.sort.priceUp'): result.sort((a, b) => a.price - b.price); break
+      case t('catalog.sort.priceDown'): result.sort((a, b) => b.price - a.price); break
+      case t('catalog.sort.rating'): result.sort((a, b) => b.rating - a.rating); break
+    }
+
+    return result
+  }, [products, query, category, sortBy])
+
+  const updateFilter = (cat: string) => {
+    setCategory(cat)
+    const params = new URLSearchParams(searchParams)
+    if (cat === 'all') params.delete('category')
+    else params.set('category', cat)
+    setSearchParams(params)
+  }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div className="container" style={{ position: 'relative', zIndex: 2, paddingTop: 36, paddingBottom: 60 }}>
-        <span className="kicker">Каталог</span>
-        <h1 style={{ fontSize: 'clamp(1.8rem,4vw,2.6rem)', margin: '8px 0 24px' }}>Все цифровые товары</h1>
+    <section className="section" style={{ paddingTop: 'clamp(80px, 10vw, 100px)' }}>
+      <div className="container">
+        {/* Заголовок + поиск */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 'var(--sp-4)', marginBottom: 'var(--sp-6)', flexWrap: 'wrap',
+        }}>
+          <h1 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2rem)' }}>{t('catalog.title')}</h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'start' }} className="cat-grid">
-          {/* Фильтры */}
-          <aside className="card mobile-hide" style={{ padding: 18, position: 'sticky', top: 90 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-display)', fontWeight: 700, marginBottom: 14 }}>
-              <span style={{ color: 'var(--violet)', display: 'flex' }}><SlidersIcon size={17} /></span> Категории
-            </div>
-            <button onClick={() => setActive(null)} style={catBtn(!active)}>
-              <span>Все товары</span>{!active && <CheckIcon size={16} />}
-            </button>
-            {CATEGORIES.map(c => {
-              const Icon = CATEGORY_ICON[c.id] ?? CoinIcon
-              return (
-              <button key={c.id} onClick={() => setActive(c.id)} style={catBtn(active === c.id)}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Icon size={17} />{c.title}</span>
-                {active === c.id && <CheckIcon size={16} />}
-              </button>
-              )
-            })}
-          </aside>
-
-          {/* Контент */}
-          <div style={{ minWidth: 0, width: '100%' }}>
-            {/* Мобильные категории */}
-            <div className="scroll-x-mobile" style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 16, paddingBottom: 4, maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
-              <button onClick={() => setActive(null)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === null ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>Все</button>
-              {CATEGORIES.map(c => (
-                <button key={c.id} onClick={() => setActive(c.id)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(active === c.id ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>{c.title}</button>
-              ))}
-            </div>
-
-            <div className="card" style={{ display: 'flex', gap: 12, padding: 12, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
-              <div style={{ position: 'relative', flex: 1, minWidth: 'min(100%, 200px)' }}>
-                <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', display: 'flex' }}><SearchIcon size={17} /></span>
-                <input className="field" value={q} onChange={e => setQ(e.target.value)} placeholder="Поиск…" style={{ paddingLeft: 38, height: 44 }} />
-              </div>
-              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', maxWidth: '100%', paddingBottom: 4, WebkitOverflowScrolling: 'touch' }}>
-                {SORTS.map((s, i) => (
-                  <button key={s} onClick={() => setSort(i)} className="chip" style={{ whiteSpace: 'nowrap', cursor: 'pointer', ...(sort === i ? { background: 'var(--text)', color: 'var(--bg)' } : {}) }}>{s}</button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 14 }}>Найдено: {list.length}</div>
-            {loading ? (
-              <div className="grid-products">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} className="card" style={{ height: 320, background: 'var(--surface-2)', animation: 'pulse 1.5s infinite' }} />
-                ))}
-              </div>
-            ) : list.length > 0 ? (
-              <div className="grid-products">{list.map(p => <ProductCard key={p.id} product={p as any} />)}</div>
-            ) : (
-              <div className="card" style={{ padding: 48, textAlign: 'center', color: 'var(--text-3)' }}>Ничего не найдено 🙃 Попробуйте другой запрос.</div>
-            )}
+          <div style={{ position: 'relative', width: '100%', maxWidth: 360 }}>
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none' }} />
+            <input
+              className="field"
+              type="text"
+              placeholder={t('catalog.search')}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              style={{ paddingLeft: 40, height: 44, borderRadius: 'var(--r-md)', fontSize: '0.88rem' }}
+            />
           </div>
         </div>
-      </div>
-      <style>{`@media (max-width:880px){ .cat-grid{ grid-template-columns:minmax(0, 1fr) !important } }`}</style>
-    </div>
-  )
-}
 
-function catBtn(activeState: boolean): React.CSSProperties {
-  return {
-    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '11px 13px', borderRadius: 6, marginBottom: 4, border: 'none', textAlign: 'left',
-    background: activeState ? 'var(--surface-2)' : 'transparent',
-    color: activeState ? 'var(--text)' : 'var(--text-2)', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer'
-  }
+        {/* Фильтры */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          gap: 'var(--sp-3)', marginBottom: 'var(--sp-6)', flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {CATS.map(c => (
+              <button
+                key={c.id}
+                onClick={() => updateFilter(c.id)}
+                className={`chip ${category === c.id ? 'active' : ''}`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--r-md)',
+                padding: '8px 32px 8px 14px',
+                color: 'var(--text)',
+                fontSize: '0.82rem',
+                fontFamily: 'var(--font-body)',
+                cursor: 'pointer',
+                appearance: 'none',
+                outline: 'none',
+              }}
+            >
+              {SORTS.map(s => <option key={s}>{s}</option>)}
+            </select>
+            <SlidersHorizontal size={14} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-3)' }} />
+          </div>
+        </div>
+
+        {/* Результаты */}
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 'var(--sp-4)' }}>
+          {t('catalog.found')}: {filtered.length}
+        </p>
+
+        {loading ? (
+          <div className="grid-products">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{ textAlign: 'center', padding: 'var(--sp-16) 0' }}
+          >
+            <SearchX size={48} style={{ color: 'var(--text-3)', margin: '0 auto' }} />
+            <h3 style={{ marginTop: 16, color: 'var(--text-2)' }}>{t('catalog.notFound')}</h3>
+            <p style={{ color: 'var(--text-3)', fontSize: '0.88rem', marginTop: 8 }}>
+              {t('catalog.notFoundDesc')}
+            </p>
+          </motion.div>
+        ) : (
+          <div className="grid-products">
+            {filtered.map((p, i) => <ProductCard key={p.id} product={p} index={i} autoStart={!!buyId && buyId === p.id} />)}
+          </div>
+        )}
+      </div>
+    </section>
+  )
 }

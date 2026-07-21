@@ -16,14 +16,44 @@ export function useProducts() {
     
     async function fetchProducts() {
       try {
-        const { data, error } = await supabase
-          .from('bazzar_products')
-          .select('*')
-          .eq('active', true)
-          .order('created_at', { ascending: false });
+        // Fetch products and apps in parallel
+        const [productsRes, appsRes] = await Promise.all([
+          supabase
+            .from('bazzar_products')
+            .select('*')
+            .eq('active', true)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('bazzar_apps')
+            .select('*')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false }),
+        ]);
 
-        if (error) throw error;
-        if (isMounted) setProducts(data || []);
+        if (productsRes.error) throw productsRes.error;
+
+        // Convert apps to Product format for catalog display
+        const appProducts: Product[] = (appsRes.data || []).map((app: any) => ({
+          id: app.id,
+          title: app.name,
+          subtitle: app.description || `v${app.version}`,
+          category: 'apps',
+          emoji: '📱',
+          grad: 'linear-gradient(135deg, #af66ff 0%, #6e00e5 100%)',
+          image: app.icon_url || '',
+          price: Number(app.price) || 0,
+          rating: 5,
+          sold: 0,
+          badge: '',
+          delivery: 'Моментально',
+          warranty: '',
+          ipa_url: app.ipa_url || '',
+          stock: app.ipa_url ? 999 : 0,
+          active: true,
+          created_at: app.created_at || new Date().toISOString(),
+        }));
+
+        if (isMounted) setProducts([...(productsRes.data || []), ...appProducts]);
       } catch (err) {
         if (isMounted) setError(err as Error);
       } finally {

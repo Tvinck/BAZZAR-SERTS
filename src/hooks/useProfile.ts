@@ -41,7 +41,7 @@ export function useProfile() {
           .from('bazzar_users')
           .select('*')
           .eq('udid', currentUdid)
-          .single();
+          .maybeSingle();
           
         if (error && error.code !== 'PGRST116') { // PGRST116 is not found
           console.error("Profile error:", error);
@@ -172,6 +172,7 @@ export function useProfile() {
     localStorage.removeItem('apple_device_model');
     localStorage.removeItem('pending_shop_order');
     localStorage.removeItem('pending_ggsel_order');
+    localStorage.removeItem('pending_app_purchase');
     localStorage.removeItem('bazzar_source');
     localStorage.removeItem('bazzar_contact');
     localStorage.removeItem('bazzar_promo');

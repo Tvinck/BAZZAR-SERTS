@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { trackEvent } from '../lib/analytics';
+import { useI18n } from '../hooks/useI18n';
 
 export function Auth() {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -14,8 +16,21 @@ export function Auth() {
 
       if (udid) {
         localStorage.setItem('apple_udid', udid);
+        localStorage.setItem('bazzar_udid', udid);
         if (model) {
           localStorage.setItem('apple_device_model', model);
+        }
+
+        // Auto-register device in bazzar_devices (own device)
+        try {
+          await supabase.from('bazzar_devices').upsert({
+            owner_udid: udid,
+            device_udid: udid,
+            model: model || null,
+            display_name: model || 'Apple устройство',
+          }, { onConflict: 'owner_udid,device_udid' });
+        } catch (e) {
+          console.error('Failed to register device:', e);
         }
 
         // Manual-registration flow (Авито): привязываем UDID к заявке и возвращаемся
@@ -35,17 +50,14 @@ export function Auth() {
           navigate(`/r/${pendingReg}`, { replace: true });
           return;
         }
-
+        
         // Check if user exists in Supabase
         const { data, error } = await supabase.from('bazzar_users').select('udid').eq('udid', udid).maybeSingle();
         
-        // If not found, create a basic profile
+        // If not found, create a basic profile.
+        // Запись bazzar_users создаётся на сервере в /api/crm/lead (service role) —
+        // прямой anon-insert отсюда запрещён RLS и раньше молча падал.
         if (!data && !error) {
-          await supabase.from('bazzar_users').insert([{
-            udid,
-            status: 'thinking',
-            created_at: new Date().toISOString()
-          }]);
           trackEvent('registrations');
           
           // Capture source and create CRM lead
@@ -75,6 +87,18 @@ export function Auth() {
             });
           } catch (e) {
             console.error('Failed to create CRM lead', e);
+          }
+
+          // Track referral if user came from ?ref= link
+          if (storedSource && storedSource.length >= 4 && storedSource.length <= 12) {
+            try {
+              await supabase.from('bazzar_referrals').upsert({
+                referrer_code: storedSource,
+                referred_udid: udid,
+              }, { onConflict: 'referrer_code,referred_udid' });
+            } catch (e) {
+              console.error('Failed to save referral', e);
+            }
           }
         }
 
@@ -117,6 +141,19 @@ export function Auth() {
           }
         }
         
+        // Возобновление покупки приложения (пользователь нажал «Купить» на /apps без UDID)
+        const pendingApp = localStorage.getItem('pending_app_purchase');
+        if (pendingApp) {
+          localStorage.removeItem('pending_app_purchase');
+          try {
+            const { appId } = JSON.parse(pendingApp);
+            if (appId) {
+              navigate(`/catalog?category=apps&buy=${encodeURIComponent(appId)}`, { replace: true });
+              return;
+            }
+          } catch { /* ignore malformed intent */ }
+        }
+
         // Redirect to personal cabinet
         navigate('/cabinet', { replace: true });
       } else {
@@ -133,9 +170,9 @@ export function Auth() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
         <div style={{ width: 40, height: 40, border: '4px solid var(--hair-strong)', borderTopColor: 'var(--violet)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>
-          Авторизация...
+          {t('auth.title')}
         </h1>
-        <p style={{ color: 'var(--text-2)' }}>Проверяем профиль устройства</p>
+        <p style={{ color: 'var(--text-2)' }}>{t('auth.desc')}</p>
       </div>
       <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
     </div>

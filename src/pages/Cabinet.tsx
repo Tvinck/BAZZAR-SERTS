@@ -1,718 +1,1826 @@
-import { useState, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { motion } from 'framer-motion'
+import { User, Package, ShieldCheck, Smartphone, Headphones, Copy, Check, Shield, ArrowRight, Send, BookOpen, ChevronDown, ChevronUp, Monitor, Plus, Crown, Download, Star, Calendar, AlertTriangle, CheckCircle2, RotateCw, MessageSquare, Upload, Image as ImageIcon, Clock, Loader2, Eye, Gift, ShoppingBag } from 'lucide-react'
+import { useToast } from '../components/Toast'
+import { usePageTitle } from '../hooks/usePageTitle'
 import { useProfile } from '../hooks/useProfile'
-import { PackageIcon, UserIcon, SettingsIcon, CheckIcon, StarIcon, ClockIcon, VerifyIcon, LogOutIcon, HeadsetIcon } from '../ui/Icons'
+import { useI18n } from '../hooks/useI18n'
+import { supabase } from '../lib/supabase'
+import { sanitizeInput } from '../lib/sanitize'
+import { getDeviceDisplayName } from '../lib/device-models'
+import { installTarget } from '../lib/appInstall'
+import { SafariHint } from '../components/SafariHint'
 
-const statusMap: Record<string, { text: string; color: string; bg: string }> = {
-  done: { text: 'Выдан', color: 'var(--green)', bg: 'transparent' },
-  progress: { text: 'В обработке', color: 'var(--amber)', bg: 'transparent' }
+/* ═══════════════════════════════════════════════════════════
+   Cabinet — 6 разделов как в оригинале + Обращения
+   ═══════════════════════════════════════════════════════════ */
+
+interface Ticket {
+  id: string
+  udid: string
+  subject: string
+  message: string
+  status: 'open' | 'in_progress' | 'resolved'
+  image_url: string | null
+  created_at: string
 }
 
-const TABS = [
-  { id: 'profile', label: 'Мой профиль', icon: <UserIcon size={18} /> },
-  { id: 'purchases', label: 'Мои покупки', icon: <PackageIcon size={18} /> },
-  { id: 'certs', label: 'Мои сертификаты', icon: <VerifyIcon size={18} /> },
-  { id: 'apps', label: 'Мои приложения', icon: <StarIcon size={18} /> },
-  { id: 'claims', label: 'Обратная связь', icon: <HeadsetIcon size={18} /> }
-]
 
-export function Cabinet() {
-  const { udid, profile, orders: userOrders, loading, logout } = useProfile()
-  const [tab, setTab] = useState('profile')
-  const [copied, setCopied] = useState(false)
-  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
 
-  const toggleOrder = (id: string) => {
-    setExpandedOrders(prev => ({ ...prev, [id]: !prev[id] }))
-  }
-  
-  // Review Modal State
-  const [isReviewOpen, setIsReviewOpen] = useState(false)
-  const [reviewText, setReviewText] = useState('')
-  const [reviewRating, setReviewRating] = useState(5)
-  const [reviewStatus, setReviewStatus] = useState('')
+interface Device {
+  id: string
+  udid: string
+  name: string
+  model: string
+  addedAt: string
+  isActive: boolean
+  certsCount: number
+}
 
-  // Claims & Suggestions State
-  const [tickets, setTickets] = useState<any[]>([])
-  const [loadingTickets, setLoadingTickets] = useState(false)
-  const [ticketType, setTicketType] = useState('suggestion')
-  const [ticketSubType, setTicketSubType] = useState('site')
-  const [ticketMessage, setTicketMessage] = useState('')
-  const [ticketImage, setTicketImage] = useState<File | null>(null)
-  const [ticketSubmitStatus, setTicketSubmitStatus] = useState('')
+// Devices loaded from apple_certificates in Supabase
 
-  // Fetch tickets
+/* ── My Apps Tab (loads from user_app_purchases) ── */
+function MyAppsTab({ udid }: { udid: string | null }) {
+  const [purchases, setPurchases] = useState<Array<{
+    id: string; status: string; amount: number; created_at: string;
+    app: { id: string; name: string; version: string; icon_url: string | null; ipa_url: string | null; description: string | null } | null
+  }>>([])
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    if (udid && tab === 'claims') {
-      loadTickets()
-    }
-  }, [udid, tab])
-
-  const loadTickets = async () => {
-    setLoadingTickets(true)
-    const { data } = await supabase.from('bazzar_tickets').select('*').eq('udid', udid).order('created_at', { ascending: false })
-    if (data) setTickets(data)
-    setLoadingTickets(false)
-  }
-
-  const submitTicket = async () => {
-    if (!ticketMessage.trim() || !udid) return
-    setTicketSubmitStatus('loading')
-
-    let imageUrl = null
-    if (ticketImage) {
-      const ext = ticketImage.name.split('.').pop()
-      const fileName = `${udid}_${Date.now()}.${ext}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('ticket_images')
-        .upload(fileName, ticketImage)
-      
-      if (!uploadError && uploadData) {
-        const { data: publicUrlData } = supabase.storage.from('ticket_images').getPublicUrl(uploadData.path)
-        imageUrl = publicUrlData.publicUrl
-      }
-    }
-
-    const { error } = await supabase.from('bazzar_tickets').insert([{
-      udid,
-      type: ticketType,
-      sub_type: ticketType === 'suggestion' ? ticketSubType : null,
-      message: ticketMessage,
-      image_url: imageUrl,
-      status: 'open',
-      created_at: new Date().toISOString()
-    }])
-
-    if (!error) {
-      setTicketSubmitStatus('success')
-      setTicketMessage('')
-      setTicketImage(null)
-      loadTickets()
-      setTimeout(() => setTicketSubmitStatus(''), 3000)
-    } else {
-      setTicketSubmitStatus('error')
-    }
-  }
-
-  const copyRef = () => { navigator.clipboard?.writeText(`bazzar-serts.shop/r/${udid ? udid.slice(-6) : 'ref'}`); setCopied(true); setTimeout(() => setCopied(false), 1800) }
-
-  const handleLogout = logout
-
-  const submitReview = async () => {
-    if (!reviewText.trim()) return
-    setReviewStatus('loading')
-
-    let targetProductId = userOrders[0]?.productId;
-    if (!targetProductId) {
-       const { data } = await supabase.from('bazzar_products').select('id').eq('category', 'certs').eq('active', true).limit(1).single();
-       targetProductId = data?.id;
-    }
-    
-    if (!targetProductId) {
-       setReviewStatus('error');
-       return;
-    }
-
-    const { error } = await supabase.from('bazzar_reviews').insert([{
-      product_id: targetProductId,
-      author: 'Клиент ' + udid?.substring(udid.length - 4),
-      rating: reviewRating,
-      text: reviewText,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    }])
-    if (!error) {
-      setReviewStatus('success')
-      setTimeout(() => { setIsReviewOpen(false); setReviewStatus(''); setReviewText(''); setReviewRating(5) }, 2000)
-    } else {
-      setReviewStatus('error')
-    }
-  }
+    if (!udid) { setLoading(false); return }
+    ;(async () => {
+      const { data, error } = await supabase
+        .from('user_app_purchases')
+        .select('id, status, amount, created_at, app:bazzar_apps(id, name, version, icon_url, ipa_url, description)')
+        .eq('udid', udid)
+        .in('status', ['paid', 'free'])
+        .order('created_at', { ascending: false })
+      if (!error && data) setPurchases(data as any)
+      setLoading(false)
+    })()
+  }, [udid])
 
   if (loading) {
     return (
-      <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-         <div style={{ color: 'var(--text-3)', fontFamily: 'var(--font-display)', fontWeight: 800 }}>ЗАГРУЗКА...</div>
+      <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+        <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 12px', color: 'var(--accent)' }} />
+        <p style={{ color: 'var(--text-3)', fontSize: '0.85rem' }}>Загрузка...</p>
       </div>
     )
   }
 
-  if (!udid) {
+  if (purchases.length === 0) {
     return (
-      <div style={{ position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="card" style={{ padding: 40, position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 400 }}>
-          <img 
-            src="/img/login_graphic.png" 
-            style={{ width: 140, height: 140, objectFit: 'contain', margin: '0 auto 16px', display: 'block', borderRadius: 16 }} 
-            alt="Secure Keycard" 
-          />
-          <h2 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Вход в личный кабинет</h2>
-          
-          <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--hair)', padding: '16px', borderRadius: '14px', marginBottom: 24 }}>
-            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: 12, lineHeight: 1.5 }}>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>Зачем это нужно?</span> UDID — это уникальный номер вашего iPhone. Он необходим для регистрации сертификата разработчика Apple, с помощью которого вы сможете устанавливать любые приложения в обход App Store.
-            </p>
-            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', marginBottom: 12, lineHeight: 1.5 }}>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>Это безопасно?</span> Да, абсолютно. Мы получаем исключительно базовую техническую информацию об устройстве (UDID и модель). Мы не имеем доступа к вашим личным данным или паролям.
-            </p>
-            <p style={{ color: 'var(--text-2)', fontSize: '0.85rem', lineHeight: 1.5 }}>
-              <span style={{ color: 'var(--amber)', fontWeight: 600 }}>Внимание:</span> Если у вас включена «Защита украденного устройства» (Stolen Device Protection) от Apple, установка профиля может потребовать задержку в 1 час. Просто подождите этот час и повторите попытку установки профиля.
-            </p>
-          </div>
-
-          <a href="/api/udid/generate" className="btn btn-primary" style={{ width: '100%', padding: '14px' }}>
-            Получить UDID
-          </a>
-        </div>
-      </div>
-    )
-  }
-
-  // Derive filtered orders
-  const certOrders = userOrders.filter(o => o.title.toLowerCase().includes('сертификат') || o.title.toLowerCase().includes('vip') || o.emoji === '📃' || o.emoji === '👑' || o.emoji === '⚡')
-  const appOrders = userOrders.filter(o => !certOrders.includes(o))
-
-  // Render Order List or Empty State
-  const renderOrders = (orders: typeof userOrders, emptyText = 'Здесь пока пусто и грустно', currentTab: string) => {
-    if (orders.length === 0) {
-      return (
-        <div className="card" style={{ padding: '60px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: '3rem', color: 'var(--text-3)', marginBottom: 16, fontFamily: 'var(--font-display)', fontWeight: 800 }}>:'(</div>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: 8 }}>{emptyText}</h3>
-          <p style={{ color: 'var(--text-2)', fontSize: '0.9rem', maxWidth: 300 }}>
-            Сделай покупку в BAZZAR, чтобы тут что-то появилось. <Link to="/catalog" style={{ color: 'var(--green)', textDecoration: 'underline' }}>В магазин →</Link>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+        <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+          <Smartphone size={48} style={{ color: 'var(--text-3)', opacity: 0.3, marginBottom: 16 }} />
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Нет установленных приложений</h4>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', maxWidth: 340, margin: '0 auto 20px' }}>
+            Установленные и купленные приложения появятся здесь.
           </p>
+          <Link to="/catalog?category=apps" className="btn btn-gradient" style={{ padding: '12px 28px', borderRadius: 'var(--r-md)', gap: 8 }}>
+            <ShoppingBag size={16} /> Каталог приложений
+          </Link>
         </div>
-      )
-    }
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {orders.map(o => {
-          const s = statusMap[o.status] || statusMap.progress
-          const isExpanded = !!expandedOrders[o.id]
-
-          return (
-            <div key={o.id} className="card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', gap: 15, alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-sm)', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.7rem', flexShrink: 0 }}>{o.emoji}</div>
-                <div style={{ flex: 1, minWidth: 160 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800 }}>{o.title}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-3)', marginTop: 3 }}>
-                    <span>{o.id}</span><span>·</span><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><ClockIcon size={13} /> {o.date}</span>
-                  </div>
-                </div>
-                <span className="badge" style={{ borderColor: s.color, color: s.color }}>{s.text}</span>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.05rem', minWidth: 80, textAlign: 'right' }}>{o.sum > 0 ? `${o.sum.toLocaleString('ru-RU')} ₽` : 'Бесплатно'}</div>
-                
-                {o.status === 'done' && currentTab === 'purchases' && (
-                  <button onClick={() => setTab(certOrders.includes(o) ? 'certs' : 'apps')} className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>Подробнее</button>
-                )}
-                {o.status === 'done' && currentTab !== 'purchases' && (
-                  <button onClick={() => toggleOrder(o.id)} className={isExpanded ? "btn btn-ghost" : "btn btn-primary"} style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>{isExpanded ? 'Скрыть' : 'Подробнее'}</button>
-                )}
-                {o.status !== 'done' && !o.ipaUrl && (
-                  <button onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))} className="btn btn-ghost" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex' }}>В поддержку</button>
-                )}
-              </div>
-
-              {/* Expanded details */}
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                    <div style={{ padding: 16, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid var(--hair-strong)', fontSize: '0.85rem', color: 'var(--text-2)', marginTop: 4 }}>
-                      {currentTab === 'certs' ? (
-                        <>
-                          <h4 style={{ color: 'var(--text)', marginBottom: 8, fontSize: '1rem' }}>Инструкция по установке сертификата</h4>
-                          <p style={{ marginBottom: 8 }}>Ваш сертификат разработчика Apple успешно выпущен и готов к использованию.</p>
-                          
-                          {o.approval_comment && (
-                            <div style={{ background: 'rgba(139, 92, 246, 0.1)', borderLeft: '3px solid var(--violet)', padding: '12px 16px', borderRadius: '4px 8px 8px 4px', marginBottom: 12, color: 'var(--text)' }}>
-                              <strong style={{ display: 'block', fontSize: '0.8rem', color: 'var(--violet)', marginBottom: 4, textTransform: 'uppercase' }}>Комментарий администратора:</strong>
-                              {o.approval_comment}
-                            </div>
-                          )}
-
-                          <button onClick={() => window.dispatchEvent(new CustomEvent('open-support-chat'))} className="btn btn-ghost" style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'inline-block' }}>Связаться с поддержкой</button>
-                        </>
-                      ) : (
-                        <>
-                          <h4 style={{ color: 'var(--text)', marginBottom: 8, fontSize: '1rem' }}>Информация о приложении</h4>
-                          <p style={{ marginBottom: 12 }}>Приложение готово к скачиванию. Для установки вам потребуется действующий сертификат разработчика.</p>
-                          {o.ipaUrl ? (
-                            <a href={o.ipaUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '9px 14px', fontSize: '0.82rem', display: 'inline-flex', marginBottom: 12 }}>Скачать файл (.IPA)</a>
-                          ) : (
-                            <p style={{ color: 'var(--amber)', marginBottom: 12 }}>Файл приложения готовится и скоро появится здесь, либо был выслан вам в Telegram.</p>
-                          )}
-                          <ul style={{ paddingLeft: 20, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            <li>Шаг 1: Сохраните .IPA файл на устройство (в "Файлы").</li>
-                            <li>Шаг 2: Откройте установщик (ESing / Scarlet / Gbox).</li>
-                            <li>Шаг 3: Выберите скачанный файл и нажмите "Подписать и установить".</li>
-                          </ul>
-                        </>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-            </div>
-          )
-        })}
       </div>
     )
   }
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div className="container cabinet-container" style={{ position: 'relative', zIndex: 2, paddingTop: 32, paddingBottom: 60 }}>
-        
-        {/* Sidebar */}
-        <aside className="cabinet-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
-          {/* User Brief */}
-          <div className="glass" style={{ padding: '16px', borderRadius: '16px', border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', gap: 12 }}>
-             <img src="/img/mascot_raccoon.png" style={{ width: 44, height: 44, borderRadius: 'var(--radius)', objectFit: 'cover' }} alt="User" />
-             <div style={{ flex: 1, overflow: 'hidden' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Пользователь</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-3)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{udid.substring(0, 8)}...</div>
-             </div>
-          </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+      <div style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 4 }}>
+        {purchases.length} {purchases.length === 1 ? 'приложение' : purchases.length < 5 ? 'приложения' : 'приложений'}
+      </div>
+      {purchases.map((p) => {
+        const app = p.app
+        if (!app) return null
+        return (
+          <div key={p.id} className="card" style={{
+            padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', flexShrink: 0,
+            }}>
+              {app.icon_url ? (
+                <img src={app.icon_url} alt="" width={56} height={56} style={{ objectFit: 'cover', borderRadius: 14 }} />
+              ) : (
+                <Smartphone size={24} style={{ color: 'var(--text-3)' }} />
+              )}
+            </div>
 
-          {/* Nav */}
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }} className="sidebar-nav-desktop">
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: 2 }}>{app.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--r-full)',
+                  background: 'rgba(149,51,255,0.1)', color: 'var(--accent)',
+                }}>
+                  v{app.version}
+                </span>
+                <span style={{
+                  fontSize: '0.7rem', padding: '2px 8px', borderRadius: 'var(--r-full)',
+                  background: p.status === 'paid' ? 'rgba(34,197,94,0.1)' : 'rgba(59,130,246,0.1)',
+                  color: p.status === 'paid' ? '#22C55E' : '#3b82f6',
+                }}>
+                  {p.status === 'paid' ? `Куплено · ${p.amount} ₽` : 'Бесплатно'}
+                </span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-3)' }}>
+                  {new Date(p.created_at).toLocaleDateString('ru-RU')}
+                </span>
+              </div>
+            </div>
+
+            {/* Установка / скачивание */}
+            {(() => {
+              const inst = installTarget(app.ipa_url)
+              if (inst.mode === 'none') return null
+              return (
+                <a
+                  href={inst.href}
+                  {...(inst.mode === 'download' ? { download: true } : {})}
+                  style={{
+                    padding: '8px 16px', borderRadius: 'var(--r-md)',
+                    background: 'linear-gradient(135deg, #af66ff, #6e00e5)',
+                    color: '#fff', textDecoration: 'none',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Download size={14} /> {inst.mode === 'ota' ? 'Установить' : 'Скачать'}
+                </a>
+              )
+            })()}
+          </div>
+        )
+      })}
+
+      <Link to="/catalog?category=apps" style={{
+        textAlign: 'center', padding: '12px', fontSize: '0.85rem',
+        color: 'var(--accent)', textDecoration: 'none', fontWeight: 600,
+      }}>
+        Каталог приложений →
+      </Link>
+    </div>
+  )
+}
+
+export function Cabinet() {
+  const { t } = useI18n()
+  usePageTitle(t('cabinet.login.title'))
+
+  const TABS = [
+    { id: 'profile', label: t('cabinet.tab.profile'), icon: <User size={18} /> },
+    { id: 'orders', label: t('cabinet.tab.orders'), icon: <Package size={18} /> },
+    { id: 'certs', label: t('cabinet.tab.certs'), icon: <ShieldCheck size={18} /> },
+    { id: 'apps', label: t('cabinet.tab.apps'), icon: <Smartphone size={18} /> },
+    { id: 'devices', label: t('cabinet.tab.devices'), icon: <Monitor size={18} /> },
+    { id: 'subs', label: t('cabinet.tab.subs'), icon: <Crown size={18} /> },
+    { id: 'tickets', label: t('cabinet.tab.tickets'), icon: <MessageSquare size={18} /> },
+    { id: 'feedback', label: t('cabinet.tab.feedback'), icon: <Headphones size={18} /> },
+  ]
+  const { toast } = useToast()
+  const { udid, profile, orders, logout } = useProfile()
+  const [tab, setTab] = useState('profile')
+  const [copied, setCopied] = useState(false)
+  const [feedbackType, setFeedbackType] = useState('suggestion')
+  const [feedbackMsg, setFeedbackMsg] = useState('')
+  const [feedbackSent, setFeedbackSent] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
+  const [devices, setDevices] = useState<Device[]>([])
+  const [expandedDevice, setExpandedDevice] = useState<string | null>(null)
+  const [deviceCerts, setDeviceCerts] = useState<Record<string, { id: string; plan_id: string; status: string; created_at: string }[]>>({})
+  const [showShareLink, setShowShareLink] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  // Load devices from bazzar_devices
+  useEffect(() => {
+    if (!udid) return
+    async function loadDevices() {
+      try {
+        const { data, error } = await supabase
+          .from('bazzar_devices')
+          .select('*')
+          .eq('owner_udid', udid)
+          .order('created_at', { ascending: true })
+        if (error) throw error
+        if (data && data.length > 0) {
+          // For each device, count certs
+          const deviceList: Device[] = []
+          for (const d of data) {
+            const { count } = await supabase
+              .from('apple_certificates')
+              .select('*', { count: 'exact', head: true })
+              .eq('udid', d.device_udid)
+            deviceList.push({
+              id: d.id,
+              udid: d.device_udid,
+              name: getDeviceDisplayName(d.model),
+              model: d.model || '',
+              addedAt: new Date(d.created_at).toLocaleDateString('ru-RU'),
+              isActive: true,
+              certsCount: count || 0,
+            })
+          }
+          setDevices(deviceList)
+        }
+      } catch {
+        // fallback to empty
+      }
+    }
+    loadDevices()
+  }, [udid])
+
+  // Load certs for expanded device
+  const loadDeviceCerts = useCallback(async (deviceUdid: string) => {
+    if (deviceCerts[deviceUdid]) return // already loaded
+    try {
+      const { data } = await supabase
+        .from('apple_certificates')
+        .select('id, plan_id, status, created_at')
+        .eq('udid', deviceUdid)
+        .order('created_at', { ascending: false })
+      if (data) setDeviceCerts(prev => ({ ...prev, [deviceUdid]: data }))
+    } catch { /* ignore */ }
+  }, [deviceCerts])
+
+  const [copiedUdid, setCopiedUdid] = useState<string | null>(null)
+
+  // Ticket system state
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [ticketsLoading, setTicketsLoading] = useState(false)
+  const [showCreateTicket, setShowCreateTicket] = useState(false)
+  const [ticketSubject, setTicketSubject] = useState('')
+  const [ticketMessage, setTicketMessage] = useState('')
+  const [ticketImageUrl, setTicketImageUrl] = useState<string | null>(null)
+  const [ticketImageUploading, setTicketImageUploading] = useState(false)
+  const [ticketSubmitting, setTicketSubmitting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Review form state
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewText, setReviewText] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewSubmitted, setReviewSubmitted] = useState(false)
+
+  // Certificates state
+  interface Certificate { id: string; plan_id: string; status: string; crm_status: string; approval_comment: string; created_at: string; updated_at: string; sale_price: number }
+  const [certificates, setCertificates] = useState<Certificate[]>([])
+  const [certsLoading, setCertsLoading] = useState(false)
+  const [expandedCert, setExpandedCert] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!udid) return
+    setCertsLoading(true)
+    supabase
+      .from('apple_certificates')
+      .select('id, plan_id, status, crm_status, approval_comment, created_at, updated_at, sale_price')
+      .eq('udid', udid)
+      .order('created_at', { ascending: false })
+      .then(
+        ({ data }) => { if (data) setCertificates(data as Certificate[]); setCertsLoading(false) },
+        () => setCertsLoading(false)
+      )
+  }, [udid])
+
+  // Subscriptions state
+  interface Subscription { id: string; app_name: string; plan: string; price: number; status: string; started_at: string; expires_at: string; auto_renew: boolean }
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [subsLoading, setSubsLoading] = useState(false)
+
+  useEffect(() => {
+    if (tab !== 'subs' || !udid) return
+    setSubsLoading(true)
+    supabase
+      .from('bazzar_subscriptions')
+      .select('*')
+      .eq('udid', udid)
+      .order('created_at', { ascending: false })
+      .then(
+        ({ data }) => { if (data) setSubscriptions(data as Subscription[]); setSubsLoading(false) },
+        () => setSubsLoading(false)
+      )
+  }, [tab, udid])
+
+  // Referral system state
+  const [referralCode, setReferralCode] = useState('')
+  const [referralCopied, setReferralCopied] = useState(false)
+  const [referralCount, setReferralCount] = useState(0)
+
+  // Generate referral code from UDID
+  useEffect(() => {
+    if (!udid) return
+    let code = localStorage.getItem('bazzar_referral_code')
+    if (!code) {
+      // Simple hash of UDID → first 8 hex chars
+      let hash = 0
+      for (let i = 0; i < udid.length; i++) {
+        const char = udid.charCodeAt(i)
+        hash = ((hash << 5) - hash) + char
+        hash |= 0
+      }
+      code = Math.abs(hash).toString(16).padStart(8, '0').slice(0, 8).toUpperCase()
+      localStorage.setItem('bazzar_referral_code', code)
+    }
+    setReferralCode(code)
+  }, [udid])
+
+  // Fetch referral count from Supabase
+  useEffect(() => {
+    if (!referralCode) return
+    const fetchReferralCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('bazzar_referrals')
+          .select('*', { count: 'exact', head: true })
+          .eq('referrer_code', referralCode)
+        if (!error && count !== null) setReferralCount(count)
+      } catch {
+        // Table may not exist yet, keep default 0
+      }
+    }
+    fetchReferralCount()
+  }, [referralCode])
+
+  // Fetch tickets when tab is selected
+  useEffect(() => {
+    if (tab === 'tickets' && udid) {
+      fetchTickets()
+    }
+  }, [tab, udid])
+
+  const fetchTickets = useCallback(async () => {
+    if (!udid) return
+    setTicketsLoading(true)
+    try {
+      const { data: ticketsData, error } = await supabase
+        .from('bazzar_tickets')
+        .select('*')
+        .eq('udid', udid)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setTickets(ticketsData || [])
+    } catch (err) {
+      console.error('Tickets fetch error:', err)
+      toast(t('cabinet.tickets.errorLoad'))
+    } finally {
+      setTicketsLoading(false)
+    }
+  }, [udid])
+
+  const handleTicketImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !udid) return
+    setTicketImageUploading(true)
+    try {
+      const filePath = `${udid}/${Date.now()}_${file.name}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('ticket_images')
+        .upload(filePath, file)
+      if (uploadError) throw uploadError
+      const { data: { publicUrl } } = supabase.storage.from('ticket_images').getPublicUrl(uploadData.path)
+      setTicketImageUrl(publicUrl)
+      toast(t('cabinet.tickets.screenshotUploaded'))
+    } catch (err) {
+      console.error('Upload error:', err)
+      toast(t('cabinet.tickets.error'))
+    } finally {
+      setTicketImageUploading(false)
+    }
+  }, [udid])
+
+  const handleCreateTicket = useCallback(async () => {
+    if (!udid || !ticketSubject || !ticketMessage.trim()) {
+      toast(t('cabinet.tickets.fillFields'))
+      return
+    }
+    setTicketSubmitting(true)
+    try {
+      const { error: ticketError } = await supabase.from('bazzar_tickets').insert([{
+        udid,
+        subject: ticketSubject,
+        message: sanitizeInput(ticketMessage),
+        status: 'open',
+        image_url: ticketImageUrl || null
+      }])
+      if (ticketError) throw ticketError
+      toast(t('cabinet.tickets.sent'))
+      setTicketSubject('')
+      setTicketMessage('')
+      setTicketImageUrl(null)
+      setShowCreateTicket(false)
+      fetchTickets()
+    } catch (err) {
+      console.error('Create ticket error:', err)
+      toast(t('cabinet.tickets.error'))
+    } finally {
+      setTicketSubmitting(false)
+    }
+  }, [udid, ticketSubject, ticketMessage, ticketImageUrl, fetchTickets])
+
+
+
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(udid || '')
+    setCopied(true)
+    toast(t('cabinet.toast.udidClipboard'))
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleFeedback = async () => {
+    if (!feedbackMsg.trim()) return
+    try {
+      const { error } = await supabase.from('bazzar_feedback').insert([{
+        udid: udid || null,
+        message: feedbackMsg.trim(),
+        contact: profile?.telegram || localStorage.getItem('bazzar_contact') || null,
+      }])
+      if (error) throw error
+      setFeedbackSent(true)
+      setFeedbackMsg('')
+      toast(t('cabinet.toast.messageSent'))
+      setTimeout(() => setFeedbackSent(false), 3000)
+    } catch (err) {
+      console.error('Feedback error:', err)
+      toast('Ошибка при отправке сообщения')
+    }
+  }
+
+  const handleSubmitReview = useCallback(async () => {
+    if (!udid || reviewRating === 0 || !reviewText.trim()) return
+    setReviewSubmitting(true)
+    try {
+      const { error } = await supabase.from('bazzar_reviews').insert([{
+        author: profile?.name || 'Пользователь',
+        rating: reviewRating,
+        text: reviewText.trim(),
+        status: 'approved',
+      }])
+      if (error) throw error
+      setReviewSubmitted(true)
+      setReviewRating(0)
+      setReviewText('')
+      toast('Отзыв успешно отправлен! ⭐')
+    } catch (err) {
+      console.error('Review submit error:', err)
+      toast('Ошибка при отправке отзыва')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }, [udid, reviewRating, reviewText, profile])
+
+  /* ── Экран входа через UDID ──────────────────────────── */
+  if (!udid) {
+    return (
+      <section className="section" style={{ paddingTop: 'clamp(100px, 14vw, 140px)' }}>
+        <div className="container" style={{ maxWidth: 460, textAlign: 'center' }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: 'var(--r-xl)', margin: '0 auto 20px',
+              background: 'rgba(149,51,255,0.1)', border: '1px solid rgba(149,51,255,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Shield size={36} style={{ color: 'var(--accent)' }} />
+            </div>
+
+            <h2 style={{ fontSize: 'clamp(1.3rem, 3vw, 1.8rem)', marginBottom: 8 }}>
+              {t('cabinet.login.title')}
+            </h2>
+            <p style={{ color: 'var(--text-3)', fontSize: '0.88rem', marginBottom: 'var(--sp-6)', lineHeight: 1.6 }}>
+              {t('cabinet.login.subtitle')}
+            </p>
+
+            <div className="card" style={{
+              padding: 'var(--sp-5)', textAlign: 'left',
+              marginBottom: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 14,
+            }}>
+              <div style={{ display: 'flex', gap: 10, fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0, fontSize: '0.78rem' }}>{t('cabinet.login.why')}</span>
+                <p style={{ color: 'var(--text-2)' }}>
+                  {t('cabinet.login.whyText')}
+                </p>
+              </div>
+              <div style={{ borderTop: '1px solid var(--border)' }} />
+              <div style={{ display: 'flex', gap: 10, fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <span style={{ color: 'var(--success)', fontWeight: 700, flexShrink: 0, fontSize: '0.78rem' }}>{t('cabinet.login.safe')}</span>
+                <p style={{ color: 'var(--text-2)' }}>
+                  {t('cabinet.login.safeText')}
+                </p>
+              </div>
+            </div>
+
+            <SafariHint />
+
+            <button
+              className="btn btn-gradient"
+              onClick={() => {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+                if (!isMobile) {
+                  toast(t('cabinet.login.mobileToast'))
+                  return
+                }
+                window.location.href = '/api/udid/generate'
+              }}
+              style={{
+                width: '100%', padding: '16px 0',
+                fontSize: '1rem', fontWeight: 800,
+                borderRadius: 'var(--r-md)', gap: 8,
+              }}
+            >
+              <Smartphone size={18} />
+              {t('cabinet.login.getUdid')}
+            </button>
+
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 12, lineHeight: 1.5 }}>
+              {t('cabinet.login.mobileHint')}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+    )
+  }
+
+
+  return (
+    <section className="section" style={{ paddingTop: 'clamp(80px, 10vw, 100px)' }}>
+      <div className="container">
+        <h1 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2rem)', marginBottom: 'var(--sp-6)' }}>{t('cabinet.login.title')}</h1>
+
+        <style>{`@media (min-width: 769px) { .cabinet-grid { grid-template-columns: 240px 1fr !important; } }`}</style>
+
+        <div className="cabinet-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 'var(--sp-5)', alignItems: 'start' }}>
+          {/* Sidebar */}
+          <nav className="card" style={{ padding: 'var(--sp-3)', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {TABS.map(t => (
-              <button 
-                key={t.id} 
-                onClick={() => setTab(t.id)} 
-                style={{ 
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: '12px',
-                  background: tab === t.id ? 'var(--surface-2)' : 'transparent',
-                  color: tab === t.id ? 'var(--text)' : 'var(--text-2)',
-                  border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: tab === t.id ? 600 : 500,
-                  transition: 'all 0.2s ease'
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '13px 16px', borderRadius: 'var(--r-md)',
+                  background: tab === t.id ? 'rgba(149,51,255,0.1)' : 'transparent',
+                  color: tab === t.id ? '#fff' : 'var(--text-3)',
+                  fontWeight: 600, fontSize: '0.9rem', width: '100%',
+                  transition: 'all 150ms', textAlign: 'left',
+                  borderLeft: tab === t.id ? '3px solid var(--accent)' : '3px solid transparent',
                 }}
               >
-                <span style={{ color: tab === t.id ? 'var(--violet)' : 'var(--text-3)' }}>{t.icon}</span>
+                <span style={{ color: tab === t.id ? 'var(--accent)' : 'var(--text-3)' }}>{t.icon}</span>
                 {t.label}
               </button>
             ))}
-            <div style={{ height: 1, background: 'var(--hair)', margin: '12px 0' }} />
-            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: '12px', background: 'transparent', color: 'var(--red)', border: 'none', cursor: 'pointer', textAlign: 'left', fontWeight: 500 }}>
-              <LogOutIcon size={18} /> Выйти
+            <div style={{ borderTop: '1px solid var(--border)', margin: '6px 0' }} />
+            <button
+              onClick={logout}
+              style={{
+                padding: '13px 16px', borderRadius: 'var(--r-md)',
+                color: '#ff4444', fontSize: '0.88rem', width: '100%',
+                fontWeight: 600, transition: 'all 150ms', textAlign: 'left',
+                borderLeft: '3px solid transparent',
+              }}
+            >
+              {t('cabinet.logout')}
             </button>
           </nav>
-          
-          <nav style={{ display: 'none', gap: 8, overflowX: 'auto', paddingBottom: 8 }} className="sidebar-nav-mobile scroll-x-mobile">
-            {TABS.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} className="btn" style={{ padding: '11px 18px', whiteSpace: 'nowrap', ...(tab === t.id ? { background: 'var(--text)', color: 'var(--bg)' } : { background: 'transparent', color: 'var(--text-2)', border: '1px solid var(--hair)' }) }}>
-                {t.icon} {t.label}
-              </button>
-            ))}
-          </nav>
-        </aside>
 
-        {/* Main Content */}
-        <main className="cabinet-content" style={{ minWidth: 0 }}>
-          <AnimatePresence mode="wait">
-            <motion.div key={tab} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }}>
-              
-              {tab === 'profile' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  {/* Профиль-хедер */}
-                  <div className="glass" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', border: '1px solid var(--hair-strong)' }}>
-                    <div style={{ flex: 1, minWidth: 200 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                        <h1 style={{ fontSize: '1.5rem', textTransform: 'none' }}>Настройки профиля</h1>
-                        <span className="badge" style={{ background: 'var(--surface-2)', color: 'var(--text)', border: 'none' }}><VerifyIcon size={13} /> {profile?.status === 'bought' ? 'PRO' : 'Client'}</span>
-                      </div>
-                      <div style={{ color: 'var(--text-3)', fontSize: '0.86rem', marginTop: 2 }}>{profile?.plan || 'Без подписки'}</div>
-                    </div>
-                  </div>
+          {/* Content */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={tab}>
 
-                  <div className="card" style={{ padding: 24 }}>
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 6 }}>Ваш Apple UDID</div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <input className="field" defaultValue={udid || ''} readOnly style={{ flex: 1, minWidth: 0, fontFamily: 'monospace', fontSize: '0.95rem' }} />
-                        <button className="btn btn-ghost" onClick={handleLogout} style={{ color: 'var(--red)' }}><LogOutIcon size={18} /></button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Инфо-облако от Маскота */}
-                  <div className="glass" style={{ padding: 18, borderRadius: 16, display: 'flex', alignItems: 'center', gap: 16, border: '1px solid var(--hair-strong)' }}>
-                    <img src="/img/mascot_raccoon.png" className="float-mascot" style={{ width: 56, height: 'auto', display: 'block', flexShrink: 0 }} alt="Mascot Helper" />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Енот-Саппорт:</div>
-                      <p style={{ fontSize: '0.86rem', color: 'var(--text-2)', marginTop: 2, lineHeight: 1.45 }}>
-                        Привет! Я слежу за статусом твоих заказов. Если заказ «В обработке» — мы уже отправляем запрос в Apple, это обычно занимает от 1 до 5 часов. Всё под контролем! 🤝
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Метрики */}
-                  <div className="grid-mobile-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
-                    <MetricCard icon={<PackageIcon size={15} />} label="Количество заказов:" value={String(userOrders.length)} accent="#eab308" bgColor="rgba(234, 179, 8, 0.05)" />
-                    <MetricCard icon={<StarIcon size={15} />} label="Ваш уровень:" value={profile?.status === 'bought' ? 'Продвинутый' : 'Начальный'} accent="#10b981" bgColor="rgba(16, 185, 129, 0.05)" />
-                  </div>
-                  
-                  <div style={{ marginTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <button onClick={() => setIsReviewOpen(true)} className="btn btn-primary" style={{ display: 'inline-flex' }}>Оставить отзыв</button>
-                    <Link to="/catalog" className="btn btn-ghost" style={{ display: 'inline-flex' }}>В каталог</Link>
+            {/* ── Мой профиль ── */}
+            {tab === 'profile' && (
+              <div className="card" style={{ padding: 'var(--sp-6)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 'var(--sp-6)' }}>
+                  <div style={{
+                    width: 60, height: 60, borderRadius: 'var(--r-lg)',
+                    background: 'var(--gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.5rem', fontWeight: 800, color: '#fff',
+                  }}>B</div>
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>{localStorage.getItem('apple_device_model') || t('cabinet.profile.appleDevice')}</p>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>UDID: {udid ? udid.substring(0, 8) + '...' + udid.substring(udid.length - 4) : 'N/A'}</p>
                   </div>
                 </div>
-              )}
 
-              {tab === 'purchases' && (
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Активные заказы и покупки</h2>
-                  {renderOrders(userOrders, 'Здесь пока пусто и грустно', 'purchases')}
+                {/* UDID копирование */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'var(--sp-6)',
+                  background: 'var(--surface-2)', border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-md)', padding: '14px 16px',
+                }}>
+                  <code style={{
+                    flex: 1, fontSize: '0.75rem', color: 'var(--text)',
+                    fontFamily: '"SF Mono", "Fira Code", monospace',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {udid || ''}
+                  </code>
+                  <button
+                    onClick={handleCopy}
+                    className="btn btn-soft"
+                    style={{
+                      padding: '6px 12px', fontSize: '0.75rem',
+                      borderRadius: 'var(--r-sm)', gap: 4,
+                      color: copied ? 'var(--success)' : 'var(--text-2)',
+                    }}
+                  >
+                    {copied ? <><Check size={13} /> {t('cabinet.profile.copied')}</> : <><Copy size={13} /> {t('cabinet.profile.copy')}</>}
+                  </button>
                 </div>
-              )}
 
-              {tab === 'certs' && (
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои сертификаты</h2>
-                  {renderOrders(certOrders, 'У вас пока нет сертификатов', 'certs')}
-                </div>
-              )}
-
-              {tab === 'apps' && (
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', marginBottom: 20 }}>Мои приложения</h2>
-                  {renderOrders(appOrders, 'Вы ещё не покупали приложения', 'apps')}
-                </div>
-              )}
-
-              {tab === 'claims' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="fade-in">
-                  <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                    <div style={{ 
-                      width: 56, height: 56, borderRadius: 16, background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))',
-                      border: '1px solid var(--hair-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text)'
+                <div style={{ display: 'grid', gap: 0 }}>
+                  {[
+                    [t('cabinet.profile.purchases'), orders.length.toString()],
+                    [t('cabinet.profile.certificates'), orders.filter(o => o.title.includes('Серт')).length.toString()],
+                    [t('cabinet.profile.apps'), orders.filter(o => !o.title.includes('Серт')).length.toString()],
+                  ].map(([label, value]) => (
+                    <div key={label} style={{
+                      display: 'flex', justifyContent: 'space-between',
+                      padding: '14px 0', borderBottom: '1px solid var(--border)', fontSize: '0.9rem',
                     }}>
-                      <HeadsetIcon size={28} />
+                      <span style={{ color: 'var(--text-2)' }}>{label}</span>
+                      <span style={{ fontWeight: 700 }}>{value}</span>
                     </div>
-                    <h2 style={{ fontSize: '1.8rem', fontFamily: 'var(--font-display)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: 8 }}>
-                      Обратная связь
-                    </h2>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', maxWidth: 400, margin: '0 auto', lineHeight: 1.5 }}>
-                      Ваши идеи помогают нам развиваться. Сообщите об ошибке или предложите улучшение.
-                    </p>
+                  ))}
+                </div>
+
+                {/* ── Реферальная программа ── */}
+                {referralCode && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    style={{
+                      marginTop: 'var(--sp-6)',
+                      padding: 'var(--sp-5)',
+                      borderRadius: 'var(--r-lg)',
+                      background: 'linear-gradient(135deg, rgba(149,51,255,0.08) 0%, rgba(6,182,212,0.06) 100%)',
+                      border: '1px solid rgba(149,51,255,0.18)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Decorative glow */}
+                    <div style={{
+                      position: 'absolute', top: -40, right: -40,
+                      width: 120, height: 120, borderRadius: '50%',
+                      background: 'radial-gradient(circle, rgba(149,51,255,0.12) 0%, transparent 70%)',
+                      pointerEvents: 'none',
+                    }} />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 'var(--sp-4)', position: 'relative' }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 'var(--r-lg)',
+                        background: 'linear-gradient(135deg, rgba(149,51,255,0.2), rgba(6,182,212,0.15))',
+                        border: '1px solid rgba(149,51,255,0.3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <Gift size={22} style={{ color: 'var(--accent)' }} />
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 2 }}>Реферальная программа</h4>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', lineHeight: 1.4 }}>
+                          Пригласите друга и получите скидку 10% на следующую покупку
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Referral link */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--sp-3)',
+                      background: 'rgba(0,0,0,0.25)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-md)', padding: '12px 14px',
+                    }}>
+                      <code style={{
+                        flex: 1, fontSize: '0.78rem', color: 'var(--text)',
+                        fontFamily: '"SF Mono", "Fira Code", monospace',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        bazzar-serts.shop/?ref={referralCode}
+                      </code>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard?.writeText(`https://bazzar-serts.shop/?ref=${referralCode}`)
+                          setReferralCopied(true)
+                          toast('Ссылка скопирована! 🔗')
+                          setTimeout(() => setReferralCopied(false), 2000)
+                        }}
+                        className="btn btn-soft"
+                        style={{
+                          padding: '6px 14px', fontSize: '0.75rem',
+                          borderRadius: 'var(--r-sm)', gap: 4, flexShrink: 0,
+                          color: referralCopied ? 'var(--success)' : 'var(--accent)',
+                          background: referralCopied ? 'rgba(34,197,94,0.1)' : 'rgba(149,51,255,0.1)',
+                          border: referralCopied ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(149,51,255,0.2)',
+                          transition: 'all 200ms',
+                        }}
+                      >
+                        {referralCopied ? <><Check size={13} /> Скопировано</> : <><Copy size={13} /> Копировать</>}
+                      </button>
+                    </div>
+
+                    {/* Referral stats */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '10px 14px', borderRadius: 'var(--r-md)',
+                      background: 'rgba(149,51,255,0.06)', border: '1px solid rgba(149,51,255,0.1)',
+                    }}>
+                      <User size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-2)' }}>
+                        Приглашено: <strong style={{ color: 'var(--text)', fontWeight: 700 }}>{referralCount}</strong> человек
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+
+            {/* ── Мои покупки ── */}
+            {tab === 'orders' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                {orders.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
+                    <Package size={40} style={{ color: 'var(--text-3)', margin: '0 auto 12px', opacity: 0.4 }} />
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>{t('cabinet.orders.empty')}</p>
                   </div>
-                  
-                  <div className="card" style={{ padding: 32, background: 'linear-gradient(180deg, rgba(20,20,22,0.8) 0%, rgba(15,15,17,0.95) 100%)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', top: -50, right: -50, width: 150, height: 150, background: 'var(--accent)', filter: 'blur(100px)', opacity: 0.1, pointerEvents: 'none' }} />
-                    
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ color: 'var(--accent)' }}>✦</span> Новое обращение
-                    </h3>
-                    
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'rgba(255,255,255,0.03)', padding: 6, borderRadius: 12, border: '1px solid var(--hair)' }}>
-                      <button 
-                        onClick={() => setTicketType('suggestion')} 
-                        style={{ 
-                          flex: 1, height: 40, borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-                          background: ticketType === 'suggestion' ? 'var(--text)' : 'transparent',
-                          color: ticketType === 'suggestion' ? 'var(--bg)' : 'var(--text-3)',
-                          boxShadow: ticketType === 'suggestion' ? '0 2px 10px rgba(0,0,0,0.2)' : 'none'
-                        }}
-                      >
-                        Предложение
-                      </button>
-                      <button 
-                        onClick={() => setTicketType('claim')} 
-                        style={{ 
-                          flex: 1, height: 40, borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-                          background: ticketType === 'claim' ? 'var(--red)' : 'transparent',
-                          color: ticketType === 'claim' ? '#fff' : 'var(--text-3)',
-                          boxShadow: ticketType === 'claim' ? '0 2px 10px rgba(239, 68, 68, 0.3)' : 'none'
-                        }}
-                      >
-                        Претензия
-                      </button>
-                    </div>
-
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={ticketType}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {ticketType === 'suggestion' && (
-                          <div style={{ marginBottom: 16 }}>
-                            <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>Тематика предложения</label>
-                            <select className="field hover-glow" value={ticketSubType} onChange={(e) => setTicketSubType(e.target.value)} style={{ width: '100%', cursor: 'pointer', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--hair-strong)', color: 'var(--text)' }}>
-                              <option value="site" style={{ background: '#121215' }}>По работе сайта</option>
-                              <option value="apps" style={{ background: '#121215' }}>Новые приложения</option>
-                              <option value="collab" style={{ background: '#121215' }}>Сотрудничество</option>
-                            </select>
-                          </div>
-                        )}
-
-                        <div style={{ marginBottom: 16 }}>
-                          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>
-                            {ticketType === 'claim' ? 'Опишите проблему' : 'Подробности'}
-                          </label>
-                          <textarea 
-                            className="field hover-glow" 
-                            placeholder={ticketType === 'claim' ? 'Укажите номер заказа и опишите, что случилось...' : 'Опишите вашу идею во всех деталях...'} 
-                            value={ticketMessage} 
-                            onChange={(e) => setTicketMessage(e.target.value)} 
-                            style={{ width: '100%', minHeight: 120, resize: 'vertical', lineHeight: 1.5, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--hair-strong)' }} 
-                          />
+                ) : (
+                  orders.map(order => (
+                    <div key={order.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                      <div style={{
+                        padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        background: order.status === 'done' ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.06)',
+                        borderBottom: '1px solid var(--border)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {order.status === 'done'
+                            ? <Check size={14} style={{ color: 'var(--success)' }} />
+                            : <RotateCw size={14} style={{ color: '#f59e0b' }} />
+                          }
+                          <span style={{
+                            fontSize: '0.78rem', fontWeight: 600,
+                            color: order.status === 'done' ? 'var(--success)' : '#f59e0b',
+                          }}>
+                            {order.status === 'done' ? t('cabinet.orders.delivered') : t('cabinet.orders.processing')}
+                          </span>
                         </div>
-
-                        <div style={{ marginBottom: 24 }}>
-                          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-3)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase' }}>Прикрепленный файл (опционально)</label>
-                          <label style={{ 
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, cursor: 'pointer', 
-                            padding: '32px 16px', background: ticketImage ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.01)', 
-                            borderRadius: '12px', border: ticketImage ? '1px solid rgba(16, 185, 129, 0.3)' : '1px dashed var(--hair-strong)',
-                            transition: 'all 0.2s'
-                          }}
-                          className="hover-glow"
-                          >
-                            <span style={{ fontSize: '2rem', filter: ticketImage ? 'none' : 'grayscale(1)', opacity: ticketImage ? 1 : 0.5 }}>
-                              {ticketImage ? '✅' : '📸'}
-                            </span>
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: ticketImage ? 'var(--green)' : 'var(--text)', marginBottom: 4 }}>
-                                {ticketImage ? 'Файл готов к загрузке' : 'Нажмите, чтобы загрузить скриншот'}
-                              </div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>
-                                {ticketImage ? ticketImage.name : 'PNG, JPG, JPEG до 5 МБ'}
-                              </div>
-                            </div>
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files && setTicketImage(e.target.files[0])} style={{ display: 'none' }} />
-                          </label>
-                          
-                          {ticketImage && (
-                            <div style={{ position: 'relative', width: 'fit-content', marginTop: 16, margin: '16px auto 0' }}>
-                              <img src={URL.createObjectURL(ticketImage)} onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} style={{ maxWidth: 200, maxHeight: 150, borderRadius: 8, border: '1px solid var(--hair)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} />
-                              <button 
-                                onClick={(e) => { e.preventDefault(); setTicketImage(null); }} 
-                                style={{ 
-                                  position: 'absolute', top: -10, right: -10, background: 'var(--red)', color: '#fff', border: 'none', borderRadius: '50%', 
-                                  width: 24, height: 24, cursor: 'pointer', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  boxShadow: '0 2px 8px rgba(239, 68, 68, 0.5)'
-                                }}
-                              >
-                                ×
-                              </button>
-                            </div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>{t('cabinet.orders.orderId')} #{order.id}</span>
+                      </div>
+                      <div style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+                          <div style={{
+                            width: 44, height: 44, borderRadius: 'var(--r-md)', flexShrink: 0,
+                            background: order.grad || 'rgba(149,51,255,0.1)',
+                            border: '1px solid rgba(149,51,255,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '1.3rem',
+                          }}>
+                            {order.emoji || <Package size={20} style={{ color: 'var(--accent)' }} />}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontWeight: 700, fontSize: '0.92rem' }}>{order.title}</p>
+                            {order.approval_comment && (
+                              <p style={{ fontSize: '0.78rem', color: 'var(--text-3)' }}>{order.approval_comment}</p>
+                            )}
+                          </div>
+                          <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text)' }}>{order.sum}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 16, fontSize: '0.75rem', color: 'var(--text-3)', alignItems: 'center' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Calendar size={12} /> {order.date}</span>
+                          {order.ipaUrl && (
+                            <a
+                              href={order.ipaUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn btn-soft"
+                              style={{
+                                padding: '4px 12px', fontSize: '0.75rem',
+                                borderRadius: 'var(--r-sm)', gap: 4,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <Download size={12} /> {t('cabinet.orders.downloadIpa')}
+                            </a>
                           )}
                         </div>
-
-                        <button 
-                          className={`btn ${ticketType === 'claim' ? 'btn-soft' : 'btn-primary'}`} 
-                          onClick={submitTicket} 
-                          disabled={ticketSubmitStatus === 'loading' || !ticketMessage.trim()} 
-                          style={{ 
-                            width: '100%', height: 48, fontSize: '0.95rem', letterSpacing: '0.02em',
-                            ...(ticketType === 'claim' && ticketMessage.trim() ? { background: 'var(--red)', color: '#fff', borderColor: 'var(--red)' } : {})
-                          }}
-                        >
-                          {ticketSubmitStatus === 'loading' ? 'Отправка...' : ticketSubmitStatus === 'success' ? 'Успешно отправлено!' : 'Отправить'}
-                        </button>
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-
-                  <div style={{ marginTop: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                      <h3 style={{ fontSize: '1.25rem', margin: 0 }}>История обращений</h3>
-                      <div style={{ height: 1, background: 'var(--hair)', flex: 1 }} />
+                      </div>
                     </div>
+                  ))
+                )}
+              </div>
+            )}
 
-                    {loadingTickets ? (
-                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-3)' }}>
-                        <div className="spinner" style={{ margin: '0 auto 16px', width: 24, height: 24, border: '2px solid var(--hair)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                        Загрузка...
-                      </div>
-                    ) : tickets.length === 0 ? (
-                      <div style={{ padding: '48px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', borderRadius: 16, border: '1px dashed var(--hair)' }}>
-                        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
-                          <CheckIcon size={24} />
-                        </div>
-                        <div style={{ color: 'var(--text-2)', fontSize: '0.95rem', fontWeight: 600 }}>Все чисто!</div>
-                        <div style={{ color: 'var(--text-3)', fontSize: '0.85rem', marginTop: 4 }}>У вас пока нет активных обращений</div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {tickets.map((t, idx) => (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            key={t.id} 
-                            className="card" 
-                            style={{ 
-                              padding: 24, 
-                              display: 'flex', 
-                              flexDirection: 'column', 
-                              gap: 16,
-                              background: 'linear-gradient(to bottom, rgba(255,255,255,0.02), transparent)',
-                              border: t.type === 'claim' ? '1px solid rgba(239, 68, 68, 0.1)' : '1px solid var(--hair-strong)'
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <span className="badge" style={{ 
-                                  background: t.type === 'claim' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)',
-                                  color: t.type === 'claim' ? '#f87171' : 'var(--text)',
-                                  border: t.type === 'claim' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--hair)',
-                                  padding: '4px 10px', fontSize: '0.75rem'
-                                }}>
-                                  {t.type === 'claim' ? 'Претензия' : t.sub_type === 'site' ? 'Предложение по сайту' : t.sub_type === 'apps' ? 'Предложение по приложениям' : 'Сотрудничество'}
-                                </span>
-                                {t.status === 'open' && !t.admin_reply ? (
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)' }} /> В обработке
-                                  </span>
-                                ) : t.admin_reply ? (
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} /> Ответ получен
-                                  </span>
-                                ) : null}
-                              </div>
-                              <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
-                                {new Date(t.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            
-                            <p style={{ fontSize: '0.95rem', color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, margin: 0 }}>
-                              {t.message}
+            {/* ── Мои сертификаты ── */}
+            {tab === 'certs' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                {certsLoading ? (
+                  <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>Загрузка сертификатов...</p>
+                  </div>
+                ) : certificates.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+                    <ShieldCheck size={48} style={{ color: 'var(--text-3)', opacity: 0.3, marginBottom: 16 }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Нет сертификатов</h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', maxWidth: 340, margin: '0 auto 20px' }}>
+                      Сертификаты появятся здесь после покупки.
+                    </p>
+                    <Link to="/catalog" className="btn btn-gradient" style={{ padding: '12px 28px', borderRadius: 'var(--r-md)', gap: 8 }}>
+                      <ShoppingBag size={16} /> Перейти в каталог
+                    </Link>
+                  </div>
+                ) : (
+                  certificates.map((cert) => {
+                    // Готовность определяем по crm_status (его выставляет оператор при согласовании),
+                    // с запасом на легаси-значения в status. Раньше смотрели только на status,
+                    // из-за чего согласованный серт вечно висел «в процессе».
+                    const isReady = cert.crm_status === 'approved' || cert.status === 'active' || cert.status === 'ready'
+                    const isError = cert.crm_status === 'rejected' || cert.status === 'error' || cert.status === 'revoked'
+                    const isInProgress = !isReady && !isError
+                    const statusColor = isReady ? 'var(--success)' : isError ? '#ef4444' : '#f59e0b'
+                    const statusBg = isReady ? 'rgba(52,199,89,0.1)' : isError ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)'
+                    const statusBorder = isReady ? 'rgba(52,199,89,0.2)' : isError ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'
+                    const statusText = isReady ? '✅ Готов' : isError ? '❌ Ошибка' : '⏳ В процессе'
+
+                    return (
+                      <motion.div
+                        key={cert.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="card"
+                        style={{ padding: 0, overflow: 'hidden' }}
+                      >
+                        {/* Header */}
+                        <div
+                          onClick={() => setExpandedCert(expandedCert === cert.id ? null : cert.id)}
+                          style={{
+                            padding: 'var(--sp-4) var(--sp-5)', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 14,
+                            transition: 'background 150ms',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <div style={{
+                            width: 46, height: 46, borderRadius: 'var(--r-lg)',
+                            background: 'rgba(149,51,255,0.1)', border: '1px solid rgba(149,51,255,0.2)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          }}>
+                            <ShieldCheck size={22} style={{ color: 'var(--accent)' }} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 2 }}>
+                              {cert.plan_id || 'Сертификат'}
                             </p>
-                            
-                            {t.image_url && (
-                              <div style={{ marginTop: 4 }}>
-                                <a href={t.image_url} target="_blank" rel="noreferrer" style={{ display: 'inline-block', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--hair)' }}>
-                                  <img src={t.image_url} alt="Скриншот" style={{ display: 'block', maxWidth: '100%', maxHeight: 120, objectFit: 'cover' }} />
-                                </a>
-                              </div>
-                            )}
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-3)' }}>
+                              Оплачено {new Date(cert.created_at).toLocaleDateString('ru-RU')}
+                              {cert.sale_price ? ` · ${cert.sale_price}₽` : ''}
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                            <span style={{
+                              padding: '4px 12px', borderRadius: 'var(--r-full)',
+                              background: statusBg, border: `1px solid ${statusBorder}`,
+                              fontSize: '0.72rem', fontWeight: 700, color: statusColor,
+                            }}>
+                              {statusText}
+                            </span>
+                            {expandedCert === cert.id ? <ChevronUp size={16} style={{ color: 'var(--text-3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--text-3)' }} />}
+                          </div>
+                        </div>
 
-                            {t.admin_reply && (
-                              <div style={{ 
-                                marginTop: 8, 
-                                background: 'rgba(16, 185, 129, 0.05)', 
-                                border: '1px solid rgba(16, 185, 129, 0.2)', 
-                                padding: '16px', 
-                                borderRadius: 12,
-                                position: 'relative'
+                        {/* Expanded details */}
+                        {expandedCert === cert.id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            style={{ borderTop: '1px solid var(--border)', padding: 'var(--sp-4) var(--sp-5)' }}
+                          >
+                            {isInProgress ? (
+                              /* In progress — show waiting info */
+                              <div>
+                                <div style={{
+                                  padding: '16px 20px', borderRadius: 'var(--r-md)',
+                                  background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)',
+                                  marginBottom: 14,
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                    <Clock size={16} style={{ color: '#f59e0b' }} />
+                                    <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f59e0b' }}>Сертификат оформляется</p>
+                                  </div>
+                                  <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', lineHeight: 1.7 }}>
+                                    Среднее время регистрации сертификата — <strong>от 1 до 5 часов</strong>, но чаще всего оформление занимает <strong>менее одного часа</strong>.
+                                  </p>
+                                  <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginTop: 10, lineHeight: 1.6 }}>
+                                    Если ваш сертификат готовится более 5 часов — <button onClick={() => setTab('feedback')} style={{ color: 'var(--accent)', fontWeight: 600, background: 'none', padding: 0, fontSize: 'inherit', cursor: 'pointer', textDecoration: 'underline' }}>напишите нам в чат</button>.
+                                  </p>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                  <div style={{ padding: '10px 12px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
+                                    <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>Статус</p>
+                                    <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f59e0b' }}>⏳ В процессе</p>
+                                  </div>
+                                  <div style={{ padding: '10px 12px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
+                                    <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>Оплачено</p>
+                                    <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{new Date(cert.created_at).toLocaleDateString('ru-RU')}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : isReady ? (
+                              /* Ready — show approval comment + guide */
+                              <div>
+                                {cert.approval_comment && (
+                                  <div style={{
+                                    padding: '16px 20px', borderRadius: 'var(--r-md)',
+                                    background: 'rgba(52,199,89,0.06)', border: '1px solid rgba(52,199,89,0.15)',
+                                    marginBottom: 14,
+                                  }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                      <CheckCircle2 size={16} style={{ color: 'var(--success)' }} />
+                                      <p style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--success)' }}>Сертификат готов</p>
+                                    </div>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                                      {cert.approval_comment}
+                                    </p>
+                                  </div>
+                                )}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                                  {[
+                                    { label: 'Тариф', value: cert.plan_id || '—' },
+                                    { label: 'Оплачено', value: new Date(cert.created_at).toLocaleDateString('ru-RU') },
+                                  ].map((m, i) => (
+                                    <div key={i} style={{ padding: '10px 12px', borderRadius: 'var(--r-md)', background: 'var(--surface-2)' }}>
+                                      <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>{m.label}</p>
+                                      <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{m.value}</p>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Guide button */}
+                                <button
+                                  onClick={() => setShowGuide(showGuide ? false : true)}
+                                  className="btn btn-soft"
+                                  style={{
+                                    width: '100%', padding: '12px 16px', borderRadius: 'var(--r-md)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                    fontSize: '0.85rem', fontWeight: 700,
+                                  }}
+                                >
+                                  <BookOpen size={15} /> Инструкция
+                                  {showGuide ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                </button>
+
+                                {showGuide && (
+                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{
+                                    marginTop: 12, padding: '16px', background: 'var(--surface-2)',
+                                    border: '1px solid var(--border)', borderRadius: 'var(--r-md)',
+                                  }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                      {[
+                                        { step: '1', text: t('cabinet.certs.step1') },
+                                        { step: '2', text: t('cabinet.certs.step2') },
+                                        { step: '3', text: t('cabinet.certs.step3') },
+                                        { step: '4', text: t('cabinet.certs.step4') },
+                                        { step: '5', text: t('cabinet.certs.step5') },
+                                        { step: '6', text: t('cabinet.certs.step6') },
+                                        { step: '7', text: t('cabinet.certs.step7') },
+                                      ].map(s => (
+                                        <div key={s.step} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                                          <div style={{
+                                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                                            background: 'rgba(149,51,255,0.12)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '0.68rem', fontWeight: 800, color: 'var(--accent)',
+                                          }}>{s.step}</div>
+                                          <p style={{ fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.6 }}>{s.text}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                            ) : (
+                              /* Error state */
+                              <div style={{
+                                padding: '16px 20px', borderRadius: 'var(--r-md)',
+                                background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)',
                               }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' }}>
-                                    <CheckIcon size={12} />
-                                  </div>
-                                  <strong style={{ fontSize: '0.8rem', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ответ поддержки</strong>
+                                  <AlertTriangle size={16} style={{ color: '#ef4444' }} />
+                                  <p style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ef4444' }}>Ошибка оформления</p>
                                 </div>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.5, margin: 0 }}>{t.admin_reply}</p>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-2)', lineHeight: 1.7, marginBottom: 10 }}>
+                                  {cert.approval_comment || 'Произошла ошибка при оформлении сертификата. Пожалуйста, свяжитесь с поддержкой.'}
+                                </p>
+                                <button onClick={() => setTab('feedback')} className="btn btn-soft" style={{ padding: '10px 18px', fontSize: '0.82rem', gap: 6, borderRadius: 'var(--r-md)' }}>
+                                  <MessageSquare size={14} /> Написать в поддержку
+                                </button>
                               </div>
                             )}
                           </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                        )}
+                      </motion.div>
+                    )
+                  })
+                )}
+              </div>
+            )}
 
-            </motion.div>
-          </AnimatePresence>
-        </main>
+            {/* ── Мои приложения ── */}
+            {tab === 'apps' && <MyAppsTab udid={udid} />}
 
-      </div>
-      
-      {/* Review Modal */}
-      <AnimatePresence>
-        {isReviewOpen && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsReviewOpen(false)}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="card" style={{ position: 'relative', width: '100%', maxWidth: 400, padding: 24, zIndex: 1 }}>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: 16 }}>Ваш отзыв</h3>
-              
-              {reviewStatus === 'success' ? (
-                <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                  <div style={{ color: 'var(--green)', display: 'inline-flex', marginBottom: 12 }}><CheckIcon size={48} /></div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: 8 }}>Спасибо!</h4>
-                  <p style={{ color: 'var(--text-2)', fontSize: '0.9rem' }}>Ваш отзыв отправлен на модерацию и скоро появится на сайте.</p>
-                </div>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 20 }}>
-                    {[1,2,3,4,5].map(star => (
-                      <button key={star} onClick={() => setReviewRating(star)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: star <= reviewRating ? '#fbbf24' : 'var(--text-3)' }}>
-                        <StarIcon size={32} />
-                      </button>
-                    ))}
-                  </div>
-                  <textarea 
-                    className="field" 
-                    placeholder="Расскажите о вашем опыте..." 
-                    value={reviewText} 
-                    onChange={e => setReviewText(e.target.value)}
-                    style={{ minHeight: 100, resize: 'none', marginBottom: 16 }}
-                  />
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setIsReviewOpen(false)}>Отмена</button>
-                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={submitReview} disabled={!reviewText.trim() || reviewStatus === 'loading'}>
-                      {reviewStatus === 'loading' ? 'Отправка...' : 'Отправить'}
+            {/* ── Мои устройства ── */}
+            {tab === 'devices' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                {/* Header */}
+                <div className="card" style={{ padding: 'var(--sp-5)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{t('cabinet.devices.title')}</h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>
+                        {devices.length} {devices.length === 1 ? t('cabinet.devices.unit1') : devices.length < 5 ? t('cabinet.devices.unit2') : t('cabinet.devices.unit5')} {t('cabinet.devices.bound')}
+                      </p>
+                    </div>
+                    <button
+                      className="btn btn-soft"
+                      onClick={() => setShowShareLink(!showShareLink)}
+                      style={{ padding: '10px 18px', borderRadius: 'var(--r-md)', gap: 6, fontSize: '0.85rem' }}
+                    >
+                      <Plus size={14} /> Добавить
                     </button>
                   </div>
-                </>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                </div>
 
-      <style>{`
-        .cabinet-container {
-          display: grid;
-          grid-template-columns: 240px 1fr;
-          gap: 40px;
-          align-items: start;
-        }
-        @media (max-width: 880px) {
-          .cabinet-container {
-            grid-template-columns: minmax(0, 1fr);
-            gap: 20px;
-          }
-          .sidebar-nav-desktop { display: none !important; }
-          .sidebar-nav-mobile { display: flex !important; }
-        }
-      `}</style>
-    </div>
-  )
-}
+                {/* Share link block */}
+                {showShareLink && (
+                  <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 'var(--sp-5)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <Send size={16} style={{ color: 'var(--accent)' }} />
+                      <h4 style={{ fontSize: '0.92rem', fontWeight: 700 }}>Отправьте ссылку другому человеку</h4>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', marginBottom: 14, lineHeight: 1.6 }}>
+                      Человек откроет ссылку на своём iPhone, установит профиль — и его устройство автоматически добавится в ваш кабинет.
+                    </p>
+                    <div style={{
+                      display: 'flex', gap: 8, alignItems: 'center',
+                      padding: '10px 14px', borderRadius: 'var(--r-md)',
+                      background: 'var(--surface-2)', border: '1px solid var(--border)',
+                    }}>
+                      <code style={{ flex: 1, fontSize: '0.78rem', color: 'var(--text-2)', wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                        {`${window.location.origin}/add-device/${udid}`}
+                      </code>
+                      <button
+                        className="btn btn-ghost"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(`${window.location.origin}/add-device/${udid}`)
+                          setLinkCopied(true)
+                          toast('Ссылка скопирована!')
+                          setTimeout(() => setLinkCopied(false), 2000)
+                        }}
+                        style={{ padding: '6px 12px', fontSize: '0.78rem', gap: 4, flexShrink: 0 }}
+                      >
+                        {linkCopied ? <><Check size={13} /> Скопировано</> : <><Copy size={13} /> Скопировать</>}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
 
-function MetricCard({ icon, label, value, accent, bgColor }: { icon: React.ReactNode; label: string; value: string; accent: string; bgColor: string }) {
-  return (
-    <div style={{ 
-      background: bgColor, 
-      borderRadius: '12px', 
-      padding: '20px 24px', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 12,
-      border: `1px solid ${accent}15`,
-      boxShadow: `inset 0 0 20px ${accent}05`
-    }}>
-      <div style={{ fontSize: '0.85rem', color: 'var(--text-2)', fontWeight: 700 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: accent, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'clamp(1.3rem, 5vw, 1.8rem)', lineHeight: 1 }}>
-        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: accent, color: '#000', flexShrink: 0 }}>
-          {icon}
-        </span>
-        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</span>
+                {/* Device list */}
+                {devices.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+                    <Smartphone size={48} style={{ color: 'var(--text-3)', opacity: 0.3, marginBottom: 16 }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Нет привязанных устройств</h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', maxWidth: 320, margin: '0 auto' }}>
+                      Устройство автоматически добавится при регистрации UDID
+                    </p>
+                  </div>
+                ) : (
+                  devices.map((device) => (
+                    <motion.div
+                      key={device.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="card"
+                      style={{ padding: 0, overflow: 'hidden' }}
+                    >
+                      {/* Device header - clickable */}
+                      <div
+                        onClick={() => {
+                          const next = expandedDevice === device.udid ? null : device.udid
+                          setExpandedDevice(next)
+                          if (next) loadDeviceCerts(device.udid)
+                        }}
+                        style={{
+                          padding: 'var(--sp-4) var(--sp-5)',
+                          cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          transition: 'background 150ms',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-2)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div style={{
+                          width: 46, height: 46, borderRadius: 'var(--r-lg)',
+                          background: device.udid === udid ? 'rgba(149,51,255,0.1)' : 'rgba(100,100,100,0.08)',
+                          border: `1px solid ${device.udid === udid ? 'rgba(149,51,255,0.2)' : 'var(--border)'}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>
+                          <Smartphone size={22} style={{ color: device.udid === udid ? 'var(--accent)' : 'var(--text-3)' }} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                            <h4 style={{ fontSize: '0.95rem', fontWeight: 700 }}>{device.name}</h4>
+                            {device.udid === udid && (
+                              <span style={{
+                                fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px',
+                                borderRadius: 'var(--r-full)', background: 'rgba(149,51,255,0.12)', color: 'var(--accent)',
+                              }}>Моё</span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', fontFamily: 'monospace' }}>
+                            UDID: {device.udid.slice(0, 12)}...{device.udid.slice(-4)}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                          <span style={{
+                            fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-3)',
+                          }}>
+                            {device.certsCount} серт.
+                          </span>
+                          {expandedDevice === device.udid ? <ChevronUp size={16} style={{ color: 'var(--text-3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--text-3)' }} />}
+                        </div>
+                      </div>
+
+                      {/* Expanded - device info + certs */}
+                      {expandedDevice === device.udid && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          style={{ borderTop: '1px solid var(--border)', padding: 'var(--sp-4) var(--sp-5)' }}
+                        >
+                          {/* Meta info */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                            {[
+                              { label: 'Модель', value: device.name },
+                              { label: 'Добавлено', value: device.addedAt },
+                              { label: 'UDID', value: device.udid, mono: true, full: true },
+                            ].map((meta, i) => (
+                              <div key={i} style={{
+                                gridColumn: meta.full ? '1 / -1' : undefined,
+                                padding: '10px 12px', borderRadius: 'var(--r-md)',
+                                background: 'var(--surface-2)',
+                              }}>
+                                <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>{meta.label}</p>
+                                <p style={{
+                                  fontSize: '0.82rem', fontWeight: 600,
+                                  fontFamily: meta.mono ? 'monospace' : undefined,
+                                  wordBreak: meta.mono ? 'break-all' : undefined,
+                                }}>{meta.value}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Certificates list */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                            <ShieldCheck size={15} style={{ color: 'var(--accent)' }} />
+                            <h5 style={{ fontSize: '0.85rem', fontWeight: 700 }}>Сертификаты</h5>
+                          </div>
+                          {!deviceCerts[device.udid] ? (
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>Загрузка...</p>
+                          ) : deviceCerts[device.udid].length === 0 ? (
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>Нет сертификатов для этого устройства</p>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {deviceCerts[device.udid].map((cert) => (
+                                <div key={cert.id} style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '10px 12px', borderRadius: 'var(--r-md)',
+                                  background: 'var(--surface-2)', border: '1px solid var(--border)',
+                                }}>
+                                  <div>
+                                    <p style={{ fontSize: '0.82rem', fontWeight: 600 }}>{cert.plan_id?.slice(0, 8) || 'Сертификат'}</p>
+                                    <p style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>
+                                      {new Date(cert.created_at).toLocaleDateString('ru-RU')}
+                                    </p>
+                                  </div>
+                                  <span style={{
+                                    fontSize: '0.7rem', fontWeight: 700, padding: '3px 10px',
+                                    borderRadius: 'var(--r-full)',
+                                    background: cert.status === 'active' ? 'rgba(52,199,89,0.1)' : 'rgba(255,165,0,0.1)',
+                                    color: cert.status === 'active' ? 'var(--success)' : '#f59e0b',
+                                  }}>
+                                    {cert.status === 'active' ? '✅ Активен' : '⏳ ' + cert.status}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Copy UDID button */}
+                          <button
+                            className="btn btn-ghost"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(device.udid)
+                              setCopiedUdid(device.udid)
+                              toast('UDID скопирован')
+                              setTimeout(() => setCopiedUdid(null), 2000)
+                            }}
+                            style={{ marginTop: 12, fontSize: '0.78rem', gap: 4, padding: '8px 14px' }}
+                          >
+                            {copiedUdid === device.udid ? <><Check size={13} /> Скопировано</> : <><Copy size={13} /> Скопировать UDID</>}
+                          </button>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            )}
+
+
+            {/* ── Мои подписки ── */}
+            {tab === 'subs' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                {/* Шапка */}
+                <div className="card" style={{ padding: 'var(--sp-5)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{t('cabinet.subs.title')}</h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>
+                        {subscriptions.length > 0 ? `${subscriptions.filter(s => s.status === 'active').length} активных` : 'Нет активных подписок'}
+                      </p>
+                    </div>
+                    <Link to="/catalog?category=apps" className="btn btn-soft" style={{ padding: '10px 18px', borderRadius: 'var(--r-md)', gap: 6, fontSize: '0.85rem' }}>
+                      {t('cabinet.subs.catalogLink')} <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                </div>
+
+                {subsLoading ? (
+                  <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>Загрузка подписок...</p>
+                  </div>
+                ) : subscriptions.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
+                    <Crown size={48} style={{ color: 'var(--text-3)', opacity: 0.3, marginBottom: 16 }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>У вас пока нет подписок</h4>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', marginBottom: 20, maxWidth: 340, margin: '0 auto 20px' }}>
+                      Подписки на приложения появятся здесь после покупки. Перейдите в каталог чтобы выбрать.
+                    </p>
+                    <Link to="/catalog?category=apps" className="btn btn-gradient" style={{ padding: '12px 28px', borderRadius: 'var(--r-md)', gap: 8 }}>
+                      <ShoppingBag size={16} /> Перейти в каталог
+                    </Link>
+                  </div>
+                ) : (
+                  subscriptions.map((sub) => (
+                    <motion.div
+                      key={sub.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="card"
+                      style={{ padding: 0, overflow: 'hidden' }}
+                    >
+                      {/* Header */}
+                      <div style={{
+                        background: sub.status === 'active'
+                          ? 'linear-gradient(135deg, #9531ff, #6e00e5)'
+                          : 'linear-gradient(135deg, #555, #333)',
+                        padding: 'var(--sp-5)', color: '#fff',
+                        position: 'relative', overflow: 'hidden',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                            <div style={{
+                              width: 48, height: 48, borderRadius: 'var(--r-lg)',
+                              background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <Crown size={24} />
+                            </div>
+                            <div>
+                              <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{sub.app_name}</h4>
+                              <p style={{ fontSize: '0.82rem', opacity: 0.85 }}>{sub.plan}</p>
+                            </div>
+                          </div>
+                          <span style={{
+                            padding: '4px 12px', borderRadius: 'var(--r-full)',
+                            background: sub.status === 'active' ? 'rgba(52,199,89,0.2)' : 'rgba(255,255,255,0.15)',
+                            fontSize: '0.75rem', fontWeight: 700,
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                          }}>
+                            {sub.status === 'active' ? <><CheckCircle2 size={14} /> Активна</> : 'Неактивна'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Body */}
+                      <div style={{ padding: 'var(--sp-5)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+                        {[
+                          { label: 'Тариф', value: sub.plan, color: 'var(--accent)' },
+                          { label: 'Активна до', value: sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('ru-RU') : '—', color: sub.status === 'active' ? 'var(--success)' : 'var(--text-3)' },
+                          { label: 'Цена', value: `${sub.price}₽`, color: 'var(--text-2)' },
+                          { label: 'Автопродление', value: sub.auto_renew ? 'Вкл' : 'Выкл', color: sub.auto_renew ? 'var(--success)' : 'var(--text-3)' },
+                        ].map((stat, i) => (
+                          <div key={i} style={{
+                            padding: '12px 14px', borderRadius: 'var(--r-md)',
+                            background: 'var(--surface-2)', border: '1px solid var(--border)',
+                          }}>
+                            <p style={{ fontSize: '0.68rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{stat.label}</p>
+                            <p style={{ fontSize: '0.9rem', fontWeight: 700, color: stat.color }}>{stat.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ── Обращения (Tickets) ── */}
+            {tab === 'tickets' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                {/* Header */}
+                <div className="card" style={{ padding: 'var(--sp-5)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 4 }}>{t('cabinet.tickets.title')}</h3>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>{t('cabinet.tickets.subtitle')}</p>
+                    </div>
+                    <button
+                      className="btn btn-gradient"
+                      onClick={() => setShowCreateTicket(!showCreateTicket)}
+                      style={{ padding: '10px 20px', borderRadius: 'var(--r-md)', gap: 6, fontSize: '0.85rem' }}
+                    >
+                      <Plus size={16} />
+                      {t('cabinet.tickets.createBtn')}
+                    </button>
+                  </div>
+
+                  {/* Create ticket form */}
+                  {showCreateTicket && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      style={{
+                        marginTop: 'var(--sp-4)', paddingTop: 'var(--sp-4)',
+                        borderTop: '1px solid var(--border)',
+                        display: 'flex', flexDirection: 'column', gap: 16,
+                      }}
+                    >
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <MessageSquare size={18} style={{ color: 'var(--accent)' }} />
+                        {t('cabinet.tickets.createTitle')}
+                      </h4>
+
+                      {/* Subject select */}
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {t('cabinet.tickets.subjectLabel')}
+                        </label>
+                        <select
+                          className="field"
+                          value={ticketSubject}
+                          onChange={(e) => setTicketSubject(e.target.value)}
+                          style={{
+                            borderRadius: 'var(--r-md)', padding: '12px 14px',
+                            appearance: 'none', cursor: 'pointer',
+                            background: 'var(--surface-2)', color: ticketSubject ? 'var(--text)' : 'var(--text-3)',
+                          }}
+                        >
+                          <option value="">{t('cabinet.tickets.subjectPlaceholder')}</option>
+                          <option value="cert">{t('cabinet.tickets.subject.cert')}</option>
+                          <option value="app">{t('cabinet.tickets.subject.app')}</option>
+                          <option value="payment">{t('cabinet.tickets.subject.payment')}</option>
+                          <option value="install">{t('cabinet.tickets.subject.install')}</option>
+                          <option value="revoke">{t('cabinet.tickets.subject.revoke')}</option>
+                          <option value="other">{t('cabinet.tickets.subject.other')}</option>
+                        </select>
+                      </div>
+
+                      {/* Message */}
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {t('cabinet.tickets.messageLabel')}
+                        </label>
+                        <textarea
+                          className="field"
+                          placeholder={t('cabinet.tickets.messagePlaceholder')}
+                          value={ticketMessage}
+                          onChange={(e) => setTicketMessage(e.target.value)}
+                          style={{
+                            borderRadius: 'var(--r-md)', minHeight: 120, resize: 'vertical',
+                            padding: '14px 16px', lineHeight: 1.6,
+                          }}
+                        />
+                      </div>
+
+                      {/* Screenshot upload */}
+                      <div>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {t('cabinet.tickets.screenshotLabel')}
+                        </label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleTicketImageUpload}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                          <button
+                            className="btn btn-soft"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={ticketImageUploading}
+                            style={{
+                              padding: '10px 18px', borderRadius: 'var(--r-md)', gap: 8,
+                              fontSize: '0.85rem', fontWeight: 600,
+                            }}
+                          >
+                            {ticketImageUploading ? (
+                              <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {t('cabinet.tickets.screenshotUploading')}</>
+                            ) : ticketImageUrl ? (
+                              <><CheckCircle2 size={14} style={{ color: 'var(--success)' }} /> {t('cabinet.tickets.screenshotUploaded')}</>
+                            ) : (
+                              <><Upload size={14} /> {t('cabinet.tickets.screenshotUpload')}</>
+                            )}
+                          </button>
+
+                          {ticketImageUrl && (
+                            <div style={{
+                              position: 'relative', width: 56, height: 56,
+                              borderRadius: 'var(--r-md)', overflow: 'hidden',
+                              border: '2px solid rgba(149,51,255,0.3)',
+                            }}>
+                              <img src={ticketImageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button
+                                onClick={() => setTicketImageUrl(null)}
+                                style={{
+                                  position: 'absolute', top: 2, right: 2,
+                                  width: 18, height: 18, borderRadius: '50%',
+                                  background: 'rgba(0,0,0,0.7)', color: '#fff',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '0.65rem', fontWeight: 800, cursor: 'pointer',
+                                }}
+                              >✕</button>
+                            </div>
+                          )}
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-3)', marginTop: 6 }}>
+                          <ImageIcon size={12} style={{ opacity: 0.5 }} /> {t('cabinet.tickets.screenshotHint')}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button
+                          className="btn btn-gradient"
+                          onClick={handleCreateTicket}
+                          disabled={ticketSubmitting}
+                          style={{ padding: '12px 24px', borderRadius: 'var(--r-md)', gap: 8, fontSize: '0.88rem' }}
+                        >
+                          {ticketSubmitting ? (
+                            <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> {t('cabinet.tickets.sending')}</>
+                          ) : (
+                            <><Send size={16} /> {t('cabinet.tickets.send')}</>
+                          )}
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => { setShowCreateTicket(false); setTicketSubject(''); setTicketMessage(''); setTicketImageUrl(null) }}
+                          style={{ padding: '12px 18px', borderRadius: 'var(--r-md)', fontSize: '0.88rem' }}
+                        >
+                          {t('cabinet.tickets.cancel')}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+
+                {/* Tickets list */}
+                {ticketsLoading ? (
+                  <div className="card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
+                    <Loader2 size={32} style={{ color: 'var(--accent)', margin: '0 auto 12px', animation: 'spin 1s linear infinite' }} />
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>{t('cabinet.tickets.loading')}</p>
+                  </div>
+                ) : tickets.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
+                    <MessageSquare size={40} style={{ color: 'var(--text-3)', margin: '0 auto 12px', opacity: 0.4 }} />
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>{t('cabinet.tickets.empty')}</p>
+                    <p style={{ color: 'var(--text-3)', fontSize: '0.78rem', marginTop: 4 }}>{t('cabinet.tickets.emptyHint')}</p>
+                  </div>
+                ) : (
+                  tickets.map((ticket, idx) => {
+                    const statusConfig: Record<string, { color: string; bg: string; border: string; icon: React.ReactNode }> = {
+                      open: {
+                        color: '#3b82f6',
+                        bg: 'rgba(59,130,246,0.08)',
+                        border: 'rgba(59,130,246,0.2)',
+                        icon: <Clock size={14} />,
+                      },
+                      in_progress: {
+                        color: '#f59e0b',
+                        bg: 'rgba(245,158,11,0.08)',
+                        border: 'rgba(245,158,11,0.2)',
+                        icon: <Loader2 size={14} />,
+                      },
+                      resolved: {
+                        color: 'var(--success)',
+                        bg: 'rgba(34,197,94,0.08)',
+                        border: 'rgba(34,197,94,0.2)',
+                        icon: <CheckCircle2 size={14} />,
+                      },
+                    }
+                    const cfg = statusConfig[ticket.status] || statusConfig.open
+
+                    // Map subject key to translation
+                    const subjectMap: Record<string, string> = {
+                      cert: t('cabinet.tickets.subject.cert'),
+                      app: t('cabinet.tickets.subject.app'),
+                      payment: t('cabinet.tickets.subject.payment'),
+                      install: t('cabinet.tickets.subject.install'),
+                      revoke: t('cabinet.tickets.subject.revoke'),
+                      other: t('cabinet.tickets.subject.other'),
+                    }
+                    const displaySubject = subjectMap[ticket.subject] || ticket.subject || t('cabinet.tickets.noSubject')
+
+                    return (
+                      <motion.div
+                        key={ticket.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="card"
+                        style={{ padding: 0, overflow: 'hidden' }}
+                      >
+                        {/* Status header */}
+                        <div style={{
+                          padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          background: cfg.bg, borderBottom: `1px solid ${cfg.border}`,
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ color: cfg.color }}>{cfg.icon}</span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: cfg.color }}>
+                              {t(`cabinet.tickets.status.${ticket.status}`)}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>#{ticket.id.substring(0, 8)}</span>
+                        </div>
+
+                        {/* Body */}
+                        <div style={{ padding: '16px 20px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 12 }}>
+                            <div style={{
+                              width: 44, height: 44, borderRadius: 'var(--r-md)', flexShrink: 0,
+                              background: 'linear-gradient(135deg, rgba(149,51,255,0.12), rgba(59,130,246,0.08))',
+                              border: '1px solid rgba(149,51,255,0.2)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <MessageSquare size={20} style={{ color: 'var(--accent)' }} />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: 4 }}>{displaySubject}</p>
+                              <p style={{
+                                fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.6,
+                                display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}>
+                                {ticket.message}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Footer meta */}
+                          <div style={{
+                            display: 'flex', gap: 16, fontSize: '0.75rem', color: 'var(--text-3)',
+                            alignItems: 'center', flexWrap: 'wrap',
+                            paddingTop: 12, borderTop: '1px solid var(--border)',
+                          }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <Calendar size={12} /> {t('cabinet.tickets.date')}: {new Date(ticket.created_at).toLocaleDateString('ru-RU')}
+                            </span>
+                            {ticket.image_url && (
+                              <a
+                                href={ticket.image_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-soft"
+                                style={{
+                                  padding: '4px 12px', fontSize: '0.75rem',
+                                  borderRadius: 'var(--r-sm)', gap: 4,
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                <Eye size={12} /> {t('cabinet.tickets.viewScreenshot')}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })
+                )}
+              </div>
+            )}
+
+            {/* ── Обратная связь ── */}
+            {tab === 'feedback' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
+                {/* ── Оставить отзыв ── */}
+                {udid && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card"
+                    style={{ padding: 'var(--sp-6)' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'var(--sp-5)' }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 'var(--r-md)',
+                        background: 'rgba(252,171,20,0.1)', border: '1px solid rgba(252,171,20,0.2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Star size={20} style={{ color: '#fcab14' }} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Оставить отзыв</h3>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-3)' }}>Поделитесь вашим опытом с BAZZAR</p>
+                      </div>
+                    </div>
+
+                    {reviewSubmitted ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        style={{
+                          padding: 'var(--sp-6)', textAlign: 'center',
+                          background: 'rgba(59,179,59,0.06)', borderRadius: 'var(--r-md)',
+                          border: '1px solid rgba(59,179,59,0.15)',
+                        }}
+                      >
+                        <CheckCircle2 size={40} style={{ color: '#3bb33b', marginBottom: 12 }} />
+                        <p style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: 6 }}>Спасибо за ваш отзыв!</p>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-2)' }}>Ваш отзыв был успешно отправлен и появится на главной странице.</p>
+                      </motion.div>
+                    ) : (
+                      <>
+                        {/* Star Rating */}
+                        <div style={{ marginBottom: 'var(--sp-4)' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 10, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            Ваша оценка
+                          </label>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <motion.button
+                                key={s}
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setReviewRating(s)}
+                                style={{
+                                  width: 44, height: 44,
+                                  borderRadius: 'var(--r-md)',
+                                  background: s <= reviewRating
+                                    ? 'rgba(252,171,20,0.15)'
+                                    : 'var(--surface-2)',
+                                  border: `1px solid ${s <= reviewRating ? 'rgba(252,171,20,0.4)' : 'var(--border)'}`,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  transition: 'all 200ms',
+                                }}
+                              >
+                                <Star
+                                  size={20}
+                                  fill={s <= reviewRating ? '#fcab14' : 'transparent'}
+                                  stroke={s <= reviewRating ? '#fcab14' : 'var(--text-3)'}
+                                />
+                              </motion.button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Review Text */}
+                        <div style={{ marginBottom: 'var(--sp-4)' }}>
+                          <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            Ваш отзыв
+                          </label>
+                          <textarea
+                            className="field"
+                            placeholder="Расскажите, что вам понравилось или что можно улучшить..."
+                            value={reviewText}
+                            onChange={e => setReviewText(e.target.value)}
+                            style={{
+                              borderRadius: 'var(--r-md)', minHeight: 100, resize: 'vertical',
+                              padding: '14px 16px', lineHeight: 1.6,
+                            }}
+                          />
+                        </div>
+
+                        {/* Submit */}
+                        <button
+                          className="btn btn-gradient"
+                          disabled={reviewSubmitting || reviewRating === 0 || !reviewText.trim()}
+                          onClick={handleSubmitReview}
+                          style={{
+                            padding: '14px 28px', borderRadius: 'var(--r-md)', gap: 8,
+                            opacity: (reviewRating === 0 || !reviewText.trim()) ? 0.5 : 1,
+                          }}
+                        >
+                          {reviewSubmitting ? (
+                            <><Loader2 size={16} className="spin" /> Отправка...</>
+                          ) : (
+                            <><Star size={16} /> Отправить отзыв</>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* ── Обратная связь (original) ── */}
+                <div className="card" style={{ padding: 'var(--sp-6)' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 'var(--sp-5)' }}>{t('cabinet.feedback.title')}</h3>
+
+                  {/* Тип обращения */}
+                  <div style={{ marginBottom: 'var(--sp-4)' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 10, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      {t('cabinet.feedback.typeLabel')}
+                    </label>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {[
+                        { id: 'suggestion', label: t('cabinet.feedback.suggestion') },
+                        { id: 'problem', label: t('cabinet.feedback.problem') },
+                        { id: 'question', label: t('cabinet.feedback.question') },
+                      ].map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => setFeedbackType(t.id)}
+                          style={{
+                            padding: '8px 16px', borderRadius: 'var(--r-full)',
+                            fontSize: '0.82rem', fontWeight: 600,
+                            background: feedbackType === t.id ? 'rgba(149,51,255,0.15)' : 'var(--surface-2)',
+                            color: feedbackType === t.id ? 'var(--accent)' : 'var(--text-3)',
+                            border: `1px solid ${feedbackType === t.id ? 'rgba(149,51,255,0.3)' : 'var(--border)'}`,
+                            transition: 'all 200ms',
+                          }}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Сообщение */}
+                  <div style={{ marginBottom: 'var(--sp-4)' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      Сообщение
+                    </label>
+                    <textarea
+                      className="field"
+                      placeholder="Опишите вашу проблему или предложение..."
+                      value={feedbackMsg}
+                      onChange={(e) => setFeedbackMsg(e.target.value)}
+                      style={{
+                        borderRadius: 'var(--r-md)', minHeight: 120, resize: 'vertical',
+                        padding: '14px 16px', lineHeight: 1.6,
+                      }}
+                    />
+                  </div>
+
+                  {/* Кнопка */}
+                  <button
+                    className="btn btn-gradient"
+                    onClick={handleFeedback}
+                    style={{ padding: '14px 28px', borderRadius: 'var(--r-md)', gap: 8 }}
+                  >
+                    <Send size={16} />
+                    {t('cabinet.feedback.send')}
+                  </button>
+
+                  {feedbackSent && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{ fontSize: '0.85rem', color: 'var(--success)', marginTop: 12, fontWeight: 600 }}
+                    >
+                      {t('cabinet.feedback.sent')}
+                    </motion.p>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }
+

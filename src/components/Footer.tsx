@@ -1,83 +1,137 @@
-import { useState } from 'react'
-import { Send, Mail } from 'lucide-react'
-import { Link } from '../ui/nav'
-import { BazzarMark, BazzarWordmark, ShieldIcon } from '../ui/Icons'
-import { LegalModal, LegalType } from './LegalModal'
+import { Link } from 'react-router-dom'
+import { useI18n } from '../hooks/useI18n'
+
+/* ═══════════════════════════════════════════════════════════
+   Footer — Чистый, минималистичный (стиль Игромир)
+   ═══════════════════════════════════════════════════════════ */
 
 export function Footer() {
-  const [legalModal, setLegalModal] = useState<LegalType>(null)
+  const { t } = useI18n()
 
-  const cols = [
-    { 
-      h: 'Навигация', 
-      items: [
-        { label: 'Главная', path: '/' },
-        { label: 'Каталог', path: '/catalog' },
-        { label: 'Кабинет', path: '/cabinet' }
-      ] 
-    },
-    { 
-      h: 'Наши услуги', 
-      items: [
-        { label: 'Сертификат разработчика', path: '/catalog' },
-        { label: 'Установка приложений', path: '/catalog' },
-        { label: 'Прямые ссылки (IPA)', path: '/catalog' },
-        { label: 'Поддержка клиентов', path: '/cabinet' }
-      ] 
-    },
-    { 
-      h: 'Правовая информация', 
-      items: [
-        { label: 'Пользовательское соглашение', type: 'terms' as LegalType },
-        { label: 'Политика конфиденциальности', type: 'privacy' as LegalType },
-        { label: 'Отказ от ответственности', type: 'disclaimer' as LegalType }
-      ] 
-    }
-  ]
+  const LINKS = {
+    catalog: [
+      { to: '/catalog?category=certs', label: t('footer.link.certs') },
+      { to: '/catalog?category=apps', label: t('footer.link.apps') },
+      { to: '/catalog?category=utils', label: t('footer.link.utils') },
+      { to: '/order-check', label: t('footer.link.orderCheck') },
+    ],
+    help: [
+      { to: '/how-it-works', label: t('footer.link.howItWorks') },
+      { to: '/install-guide', label: t('footer.link.guide') },
+      { to: '/guarantees', label: t('footer.link.guarantees') },
+      { to: '/blog', label: 'Блог и гайды' },
+      { to: '/#faq', label: 'FAQ' },
+    ],
+    info: [
+      { to: '/privacy', label: t('footer.link.privacy') },
+      { to: '/offer', label: 'Оферта и возврат' },
+      { to: '/#why', label: t('footer.link.about') },
+      { to: '/#cta', label: t('footer.link.contacts') },
+    ],
+  }
+
   return (
-    <footer style={{ borderTop: '1px solid var(--hair)', background: 'var(--bg-2)', marginTop: 40, paddingBottom: '70px' }}>
-      <div className="container" style={{ padding: '56px 0 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 32 }}>
+    <footer style={{
+      borderTop: '1px solid var(--border)',
+      padding: 'var(--sp-10) 0 var(--sp-6)',
+      background: 'var(--bg)',
+    }}>
+      <div className="container">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 'var(--sp-8)',
+          marginBottom: 'var(--sp-8)',
+        }}>
+          {/* Логотип */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <BazzarMark size={34} />
-              <BazzarWordmark size="1.05rem" />
+            <div style={{ display: 'inline-flex', alignItems: 'baseline', letterSpacing: '-0.04em', marginBottom: 12 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 800, color: '#fff' }}>BAZZAR</span>
+              <span style={{ fontWeight: 500, fontSize: '0.95rem', color: 'var(--accent)', marginLeft: 4, fontStyle: 'italic' }}>certs.</span>
             </div>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.88rem', maxWidth: 260, lineHeight: 1.6 }}>
-              Bazzar Certs — сервис для получения сертификата разработчика Apple и безопасной установки любых приложений на iOS без App Store.
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 260 }}>
+              {t('footer.desc')}
             </p>
-            <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-              <a href="https://t.me/bazzar_support" target="_blank" rel="noreferrer" aria-label="Telegram" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surface-2)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
-                <Send size={16} />
-              </a>
-              <a href="mailto:support@bazzar-serts.shop" aria-label="Email" style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--surface-2)', border: '1px solid var(--hair)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
-                <Mail size={16} />
+          </div>
+
+          {/* Каталог */}
+          <div>
+            <h4 style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {t('footer.catalogTitle')}
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {LINKS.catalog.map(link => (
+                <Link key={link.to} to={link.to} style={{ fontSize: '0.85rem', color: 'var(--text-3)', transition: 'color 200ms' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Покупателям */}
+          <div>
+            <h4 style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {t('footer.helpTitle')}
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {LINKS.help.map(link => (
+                <Link key={link.to} to={link.to} style={{ fontSize: '0.85rem', color: 'var(--text-3)', transition: 'color 200ms' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Информация */}
+          <div>
+            <h4 style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {t('footer.infoTitle')}
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {LINKS.info.map(link => (
+                <Link key={link.to} to={link.to} style={{ fontSize: '0.85rem', color: 'var(--text-3)', transition: 'color 200ms' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Поддержка */}
+          <div>
+            <h4 style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {t('footer.supportTitle')}
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <a href="https://t.me/bazzarserts" target="_blank" rel="noopener" style={{ fontSize: '0.85rem', color: 'var(--text-3)', transition: 'color 200ms' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-3)')}>
+                Telegram
               </a>
             </div>
           </div>
-          {cols.map(c => (
-            <div key={c.h}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.92rem', marginBottom: 14 }}>{c.h}</div>
-              {c.items.map((i: any) => (
-                i.path ? (
-                  <Link key={i.label} to={i.path} style={{ display: 'block', marginBottom: 10, fontSize: '0.86rem', color: 'var(--text-3)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}>{i.label}</Link>
-                ) : (
-                  <button key={i.label} onClick={() => setLegalModal(i.type)} style={{ display: 'block', marginBottom: 10, fontSize: '0.86rem', color: 'var(--text-3)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')} onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}>{i.label}</button>
-                )
-              ))}
-            </div>
-          ))}
         </div>
-        <div style={{ marginTop: 40, paddingTop: 22, borderTop: '1px solid var(--hair)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <span style={{ fontSize: '0.82rem', color: 'var(--text-3)' }}>© {new Date().getFullYear()} BAZZAR CERTS</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: '0.82rem', color: 'var(--text-3)' }}>
-            <span style={{ color: 'var(--green)', display: 'flex' }}><ShieldIcon size={15} /></span> Безопасная установка на iOS
-          </span>
+
+        {/* Реквизиты + Копирайт */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 'var(--sp-4)' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: 6, lineHeight: 1.6 }}>
+            ИП Кошелев Артём Николаевич · ОГРНИП 325330000066143 · ИНН 331110148785
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-3)' }}>
+              © {new Date().getFullYear()} Bazzar Certs. {t('footer.rights')}.
+            </p>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-3)' }}>
+              <Link to="/offer" style={{ color: 'var(--text-3)' }}>Публичная оферта</Link>
+            </p>
+          </div>
         </div>
       </div>
-      <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />
     </footer>
   )
 }

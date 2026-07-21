@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from '../lib/rate-limit.js';
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 // MUST use service role key to bypass RLS on `clients` table
@@ -6,7 +7,16 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const limiter = rateLimit({ windowMs: 60_000, max: 5 });
+
 export default async function handler(req, res) {
+  // Rate limit: 5 requests per minute per IP
+  const { allowed, retryAfter } = limiter.check(req);
+  if (!allowed) {
+    res.setHeader('Retry-After', Math.ceil(retryAfter / 1000));
+    return res.status(429).json({ error: 'Too Many Requests' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -23,6 +33,22 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Создаём запись клиента в bazzar_users (сайт под anon этого сделать не может —
+    // RLS запрещает anon INSERT; здесь service role). Идемпотентно по udid.
+    const { data: existingUser } = await supabase
+      .from('bazzar_users')
+      .select('udid')
+      .eq('udid', udid)
+      .maybeSingle();
+    if (!existingUser) {
+      const { error: userErr } = await supabase.from('bazzar_users').insert([{
+        udid,
+        status: 'thinking',
+        created_at: new Date().toISOString(),
+      }]);
+      if (userErr) console.error('Failed to create bazzar_users:', userErr.message);
+    }
+
     // Check if lead already exists for this UDID
     const { data: existingClients } = await supabase
       .from('clients')

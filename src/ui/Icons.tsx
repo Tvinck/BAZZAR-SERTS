@@ -11,7 +11,6 @@ type P = { size?: number; className?: string }
 const base = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', xmlns: 'http://www.w3.org/2000/svg' as const })
 const stroke = { stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
-let uid = 0
 
 /** Стильный минималистичный логотип (Y2K / Streetwear эстетика). */
 export function BazzarMark({ size = 38 }: { size?: number }) {
