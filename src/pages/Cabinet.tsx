@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { User, Package, ShieldCheck, Smartphone, Headphones, Copy, Check, Shield, ArrowRight, Send, BookOpen, ChevronDown, ChevronUp, Monitor, Plus, Crown, Download, Star, Calendar, AlertTriangle, CheckCircle2, RotateCw, MessageSquare, Upload, Image as ImageIcon, Clock, Loader2, Eye, Gift, ShoppingBag } from 'lucide-react'
 import { useToast } from '../components/Toast'
@@ -188,7 +188,15 @@ export function Cabinet() {
   ]
   const { toast } = useToast()
   const { udid, profile, orders, logout } = useProfile()
-  const [tab, setTab] = useState('profile')
+  const [searchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab')
+  const [tab, setTab] = useState(tabFromUrl || 'profile')
+
+  useEffect(() => {
+    if (tabFromUrl) {
+      setTab(tabFromUrl)
+    }
+  }, [tabFromUrl])
   const [copied, setCopied] = useState(false)
   const [feedbackType, setFeedbackType] = useState('suggestion')
   const [feedbackMsg, setFeedbackMsg] = useState('')
@@ -823,6 +831,27 @@ export function Cabinet() {
             {/* ── Мои сертификаты ── */}
             {tab === 'certs' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+                <div className="card" style={{
+                  padding: '16px 20px',
+                  borderRadius: 'var(--r-lg)',
+                  background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.05))',
+                  border: '1px solid rgba(34,197,94,0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 10,
+                    background: 'rgba(34,197,94,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    <Clock size={20} style={{ color: '#22C55E' }} />
+                  </div>
+                  <div style={{ flex: 1, fontSize: '0.84rem', color: 'var(--text-2)', lineHeight: 1.45 }}>
+                    <strong style={{ color: 'var(--text)', display: 'block', marginBottom: 2 }}>Заявка оформляется автоматически</strong>
+                    После оплаты подписка связывается с вашим UDID. Изготовление занимает от 1 до 5 часов на стороне Apple. Готовый сертификат и инструкция появятся на этой странице.
+                  </div>
+                </div>
                 {certsLoading ? (
                   <div className="card" style={{ padding: 'var(--sp-6)', textAlign: 'center' }}>
                     <p style={{ color: 'var(--text-3)', fontSize: '0.88rem' }}>Загрузка сертификатов...</p>

@@ -130,7 +130,7 @@ export function Auth() {
             if (linkRes.ok && linkData.success !== false) {
               localStorage.removeItem('pending_shop_order');
               localStorage.removeItem('pending_ggsel_order');
-              navigate('/cabinet', { replace: true });
+              navigate('/cabinet?tab=certs', { replace: true });
               return;
             } else {
               console.error('Link API returned error:', linkData);

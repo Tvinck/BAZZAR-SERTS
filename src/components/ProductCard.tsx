@@ -210,7 +210,18 @@ export function ProductCard({ product, index = 0, autoStart = false }: Props) {
           {product.title}
         </h3>
 
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-3)', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{
+          fontSize: '0.78rem',
+          color: 'var(--text-3)',
+          lineHeight: 1.4,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word',
+        }}>
           {product.subtitle}
         </p>
 

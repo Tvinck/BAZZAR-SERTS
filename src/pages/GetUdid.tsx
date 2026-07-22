@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Smartphone, Copy, Check, ShieldCheck, ChevronRight, Download, Sparkles, ArrowRight } from 'lucide-react'
+import { Smartphone, Copy, Check, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react'
 import { getDeviceDisplayName } from '../lib/device-models'
 import { useToast } from '../components/Toast'
 import { SafariHint } from '../components/SafariHint'
+import { supabase } from '../lib/supabase'
 
 /* ═══════════════════════════════════════════════════════════
    GetUdid — Страница для получения UDID устройства
@@ -45,6 +46,18 @@ export function GetUdid() {
   }
 
   const displayModel = model ? getDeviceDisplayName(model) : null
+
+  const [hasCert, setHasCert] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!udid) return
+    supabase
+      .from('apple_certificates')
+      .select('id')
+      .eq('udid', udid)
+      .limit(1)
+      .then((res: { data: any[] | null }) => setHasCert(!!(res.data && res.data.length > 0)))
+  }, [udid])
 
   // ── UDID already available ───────────────────────────────
   if (udid) {
@@ -87,7 +100,7 @@ export function GetUdid() {
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 'var(--r-lg)',
                 cursor: 'pointer',
-                marginBottom: 32,
+                marginBottom: 24,
                 transition: 'border-color 200ms',
               }}
               whileHover={{ borderColor: 'rgba(149,51,255,0.3)' }}
@@ -116,66 +129,55 @@ export function GetUdid() {
               </div>
             </motion.div>
 
-            {/* CTA cards */}
+            {/* Guidance Block */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+              transition={{ delay: 0.3 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
             >
-              <Link to="/catalog" style={{ textDecoration: 'none' }}>
-                <div style={{
-                  padding: '18px 20px', borderRadius: 'var(--r-lg)',
-                  background: 'linear-gradient(135deg, rgba(149,51,255,0.12), rgba(110,0,229,0.08))',
-                  border: '1px solid rgba(149,51,255,0.2)',
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  transition: 'all 200ms', cursor: 'pointer',
+              {hasCert === true ? (
+                <div className="card" style={{
+                  padding: '20px',
+                  borderRadius: 'var(--r-lg)',
+                  background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(16,185,129,0.06))',
+                  border: '1px solid rgba(34,197,94,0.3)',
+                  textAlign: 'left',
                 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12,
-                    background: 'rgba(149,51,255,0.15)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <ShieldCheck size={22} style={{ color: '#af66ff' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, color: '#22C55E', fontWeight: 700, fontSize: '0.98rem' }}>
+                    <ShieldCheck size={20} /> Заявка на сертификат создана автоматически
                   </div>
-                  <div style={{ flex: 1, textAlign: 'left' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text)' }}>
-                      Купить сертификат
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginTop: 2 }}>
-                      Подпишите любые приложения на вашем устройстве
-                    </div>
-                  </div>
-                  <ChevronRight size={18} style={{ color: 'var(--text-3)' }} />
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-2)', lineHeight: 1.5, marginBottom: 16 }}>
+                    Подготовка сертификата обычно занимает от 1 до 5 часов на стороне Apple. Ничего делать не нужно — статус обновится в личном кабинете.
+                  </p>
+                  <Link to="/cabinet?tab=certs" className="btn btn-gradient" style={{ width: '100%', justifyContent: 'center', padding: '12px 20px', borderRadius: 'var(--r-md)' }}>
+                    Перейти в кабинет
+                  </Link>
                 </div>
-              </Link>
-
-              <Link to="/catalog?category=apps" style={{ textDecoration: 'none' }}>
-                <div style={{
-                  padding: '18px 20px', borderRadius: 'var(--r-lg)',
+              ) : (
+                <div className="card" style={{
+                  padding: '20px',
+                  borderRadius: 'var(--r-lg)',
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(255,255,255,0.08)',
-                  display: 'flex', alignItems: 'center', gap: 14,
-                  transition: 'all 200ms', cursor: 'pointer',
+                  textAlign: 'left',
                 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12,
-                    background: 'rgba(59,130,246,0.12)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <Download size={22} style={{ color: '#3b82f6' }} />
+                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--text)', marginBottom: 6 }}>
+                    Что делать дальше?
                   </div>
-                  <div style={{ flex: 1, textAlign: 'left' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text)' }}>
-                      Приложения
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginTop: 2 }}>
-                      Готовые IPA для установки через подпись
-                    </div>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 16 }}>
+                    Если вы уже оплатили товар на GGSel или на сайте — привяжите код заказа для авто-создания заявки. Если еще не оформляли подписку — выберите тариф в каталоге.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <Link to="/cabinet?tab=certs" className="btn btn-gradient" style={{ justifyContent: 'center', padding: '12px 20px', borderRadius: 'var(--r-md)' }}>
+                      Открыть кабинет
+                    </Link>
+                    <Link to="/catalog" className="btn btn-secondary" style={{ justifyContent: 'center', padding: '12px 20px', borderRadius: 'var(--r-md)' }}>
+                      Перейти в каталог
+                    </Link>
                   </div>
-                  <ChevronRight size={18} style={{ color: 'var(--text-3)' }} />
                 </div>
-              </Link>
+              )}
             </motion.div>
           </motion.div>
         </div>
