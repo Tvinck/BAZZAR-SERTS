@@ -1,0 +1,91 @@
+name: Patch IPAs — BazzarSerts Notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub Release tag containing original IPAs (e.g. v1.0-originals)"
+        required: true
+        default: "originals"
+
+jobs:
+  patch:
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Build BazzarSerts.dylib ─────────────────────────
+      - name: Compile BazzarSerts.dylib (arm64)
+        run: |
+          clang -shared -framework UIKit -framework Foundation \
+            -arch arm64 \
+            -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+            -miphoneos-version-min=14.0 \
+            -install_name @executable_path/BazzarSerts.dylib \
+            -o BazzarSerts.dylib \
+            tools/BazzarSerts.m
+          file BazzarSerts.dylib
+          echo "✅ Dylib compiled"
+
+      # ── Install optool ─────────────────────────────────
+      - name: Install optool
+        run: |
+          brew install optool 2>/dev/null || {
+            # Fallback: build from source
+            git clone --recursive https://github.com/alexzielenski/optool.git /tmp/optool
+            cd /tmp/optool
+            xcodebuild -project optool.xcodeproj \
+                       -scheme optool \
+                       -configuration Release \
+                       SYMROOT=/tmp/optool_build \
+                       2>/dev/null | tail -5
+            cp /tmp/optool_build/Release/optool /usr/local/bin/optool
+          }
+          which optool && echo "✅ optool ready" || echo "❌ optool not found"
+
+      # ── Download original IPAs from Release ─────────────
+      - name: Download IPAs from Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p originals patched
+          echo "Downloading files from release: ${{ inputs.release_tag }}"
+          gh release download "${{ inputs.release_tag }}" \
+            --pattern "*.ipa" \
+            --dir originals/ \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+          gh release download "${{ inputs.release_tag }}" \
+            --pattern "*.zip" \
+            --dir originals/ \
+            --repo "${{ github.repository }}" 2>/dev/null || true
+          # Rename .zip to .ipa
+          for f in originals/*.zip; do
+            [ -f "$f" ] || continue
+            mv "$f" "${f%.zip}.ipa"
+          done
+          echo "IPAs ready:"
+          ls -lh originals/
+
+      # ── Patch each IPA ──────────────────────────────────
+      - name: Patch all IPAs
+        run: |
+          chmod +x tools/patch-ipa.sh
+          for ipa in originals/*.ipa; do
+            [ -f "$ipa" ] || continue
+            bash tools/patch-ipa.sh "$ipa" BazzarSerts.dylib patched
+          done
+          echo ""
+          echo "=== All patched IPAs ==="
+          ls -lh patched/
+
+      # ── Upload patched IPAs as artifacts ────────────────
+      - name: Upload patched IPAs
+        uses: actions/upload-artifact@v4
+        with:
+          name: patched-ipas
+          path: patched/*.ipa
+          retention-days: 30
+          compression-level: 0
